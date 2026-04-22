@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "ST Debit Nudge Experiment",
+    "slug": "st-debit-nudge-experiment",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icons/Launcher icons/point-of-sale.svg",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "backgroundColor": "#111111"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#111111"
+      },
+      "package": "com.godaddy.stdebitnudge"
+    },
+    "platforms": ["android"],
+    "sdkVersion": "55.0.0"
+  }
+}
