@@ -144,6 +144,16 @@ export function C1PaymentPanel({
     ]).start();
   };
 
+  const handleCancel = () => {
+    setSelectedMethod(null);
+    setLockedMethod(null);
+    setLockedColor(null);
+    setGridOpen(false);
+    gridAnimO.setValue(0);
+    gridAnimY.setValue(-8);
+    onCancel?.();
+  };
+
   const closeGrid = () => {
     Animated.parallel([
       Animated.timing(gridAnimO, { toValue: 0, duration: 130, useNativeDriver: true }),
@@ -169,7 +179,7 @@ export function C1PaymentPanel({
       style={[s1.container, { opacity }]}
     >
       {/* Scrim behind panel */}
-      <Pressable style={s1.scrim} onPress={onCancel} />
+      <Pressable style={s1.scrim} onPress={handleCancel} />
 
       {/* Panel */}
       <Animated.View style={[s1.panel, { transform: [{ scale }] }]}>
@@ -236,7 +246,7 @@ export function C1PaymentPanel({
         </View>
 
         {/* ── Cancel button ────────────────────────────────────────────── */}
-        <TouchableOpacity onPress={onCancel} style={s1.cancelRow} activeOpacity={0.75}>
+        <TouchableOpacity onPress={handleCancel} style={s1.cancelRow} activeOpacity={0.75}>
           <Text style={s1.cancelLabel}>CANCEL</Text>
         </TouchableOpacity>
 
