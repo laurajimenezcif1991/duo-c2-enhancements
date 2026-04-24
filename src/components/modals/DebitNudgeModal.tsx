@@ -189,17 +189,7 @@ export function DebitNudgeModal({
             style={[s.btn, { backgroundColor: palette.bgBase }]}
           >
             <Text style={[s.btnLabel, { color: '#ffffff', fontFamily: FontFamily.textMedium }]}>
-              Set as default
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={onMaybeLater ?? dismiss}
-            activeOpacity={0.8}
-            style={[s.btn, s.btnOutline, { borderColor: palette.contentTertiary }]}
-          >
-            <Text style={[s.btnLabel, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
-              Maybe later
+              Got it
             </Text>
           </TouchableOpacity>
         </View>
