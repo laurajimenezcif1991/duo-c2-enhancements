@@ -170,8 +170,9 @@ export default function App() {
     <View style={s.root}>
       <View style={s.canvas}>
 
-        {/* ── Controls panel — top-left, outside device ────────────────────── */}
-        <View style={s.controlsPanel}>
+        {/* ── Controls panel — top-left, outside device, only during payment ── */}
+        {paymentActive && (
+          <View style={s.controlsPanel}>
           <Text style={s.controlsLabel}>Experiments</Text>
           <TouchableOpacity
             style={s.chip}
@@ -199,6 +200,7 @@ export default function App() {
             </TouchableOpacity>
           ))}
         </View>
+        )}
 
         {/* ── Device — centered, scaled to fit viewport ─────────────────────── */}
         <View style={{ width: scaledW, height: scaledH }}>
