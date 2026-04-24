@@ -1,153 +1,243 @@
 /**
  * App — ST Debit Nudge Experiment
  *
- * Entry point for the experiment. Loads fonts and renders the Duo device
- * layout directly — no design system showcase or navigation chrome.
+ * Renders both Duo screens inside the physical STD device frame:
  *
- * The app presents both Duo screens side-by-side in a scrollable canvas
- * so the full merchant+customer flow is visible during development.
+ *   ┌────────────────────────────────┐
+ *   │  STD device shell (681 × 1643) │
+ *   │  ┌──────────────────────────┐  │
+ *   │  │  C2 — Customer  600×360  │  │  y=35
+ *   │  └──────────────────────────┘  │
+ *   │  ┌──────────────────────────┐  │
+ *   │  │  C1 — Merchant  600×960  │  │  y=597
+ *   │  │    ↑ DebitNudgeModal     │  │  ← overlaid inside C1 bounds
+ *   │  └──────────────────────────┘  │
+ *   └────────────────────────────────┘
  *
- * In production the two screens would run on their respective physical
- * displays (C1 = merchant, C2 = customer).
- *
- * ┌─────────────────┬─────────────────┐
- * │   Duo C1        │   Duo C2        │
- * │   Merchant      │   Customer      │
- * │   600 × 912     │   600 × 360     │
- * └─────────────────┴─────────────────┘
- *
- * Experiment controls (top strip — dev only):
- *   • Nudge variant picker: savings | speed | rewards
- *   • Dark mode toggle
+ * Cart state lives here so C1 (merchant adds items) and
+ * C2 (customer sees live order) stay in sync.
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
+  Image,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useFonts } from 'expo-font';
-import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 
 import { RegisterDuoScreen }   from './src/screens/RegisterDuoScreen';
 import { RegisterDuoC2Screen } from './src/screens/RegisterDuoC2Screen';
-import type { NudgeVariant } from './src/components/payment/DebitNudgeCard';
+import { DebitNudgeModal }     from './src/components/modals/DebitNudgeModal';
+import type { CartItem, CartState, CartActions } from './src/types/cart';
+import type { C2Variant } from './src/components/payment/PaymentFragment';
 
 // ─── Fonts ────────────────────────────────────────────────────────────────────
 
 const FONTS = {
-  'GDSherpaDisplay-Regular': require('./assets/fonts/GDSherpa-Display-Regular.otf'),
-  'GDSherpaDisplay-Medium':  require('./assets/fonts/GDSherpa-Display-Medium.otf'),
-  'GDSherpaText-Regular':    require('./assets/fonts/GDSherpa-Text-Regular.otf'),
-  'GDSherpaText-Medium':     require('./assets/fonts/GDSherpa-Text-Medium.otf'),
-  'GDSherpaText-Bold':       require('./assets/fonts/GDSherpa-Text-Bold.otf'),
+  'GDSherpaDisplay-Regular': require('./assets/fonts/GDSherpaDisplay-Regular.otf'),
+  'GDSherpaDisplay-Medium':  require('./assets/fonts/GDSherpaDisplay-Medium.otf'),
+  'GDSherpaText-Regular':    require('./assets/fonts/GDSherpaText-Regular.otf'),
+  'GDSherpaText-Medium':     require('./assets/fonts/GDSherpaText-Medium.otf'),
+  'GDSherpaText-Bold':       require('./assets/fonts/GDSherpaText-Bold.otf'),
 };
 
-// ─── Experiment controls ──────────────────────────────────────────────────────
+// ─── Device frame geometry (matches std-device.png, node 32:7569) ─────────────
 
-const VARIANTS: { key: NudgeVariant; label: string }[] = [
-  { key: 'savings', label: 'Savings'  },
-  { key: 'speed',   label: 'Speed'    },
-  { key: 'rewards', label: 'Rewards'  },
-];
+const DEVICE_W = 681;
+const DEVICE_H = 1643;
+
+const C2_X = 40;
+const C2_Y = 35;
+const C2_W = 600;
+const C2_H = 360;
+
+const C1_X = 42;
+const C1_Y = 597;
+const C1_W = 600;
+const C1_H = 960;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatTotal(value: number): string {
+  return `$${value.toFixed(2)}`;
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [fontsLoaded] = useFonts(FONTS);
 
-  const [dark,          setDark]          = useState(false);
-  const [variant,       setVariant]       = useState<NudgeVariant>('savings');
+  const [dark]          = useState(false);
   const [paymentActive, setPaymentActive] = useState(false);
-  const [chargeAmount]                    = useState('$12.50');
+  const [debitModal,    setDebitModal]    = useState(false);
+  const [c2Variant,     setC2Variant]     = useState<C2Variant>('A');
+
+  // ── Shared cart state ─────────────────────────────────────────────────────
+  const [cartItems,  setCartItems]  = useState<CartItem[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // ── Derived values ────────────────────────────────────────────────────────
+  const total = useMemo(
+    () => cartItems.reduce((sum, i) => sum + i.priceValue * i.quantity, 0),
+    [cartItems],
+  );
+
+  const cart: CartState = useMemo(() => ({
+    items:        cartItems,
+    selectedId,
+    total,
+    chargeAmount: formatTotal(total),
+    orderCount:   cartItems.length,
+  }), [cartItems, selectedId, total]);
+
+  // ── Cart actions ──────────────────────────────────────────────────────────
+  const addOrIncrement = useCallback((
+    id: string, name: string, priceLabel: string, priceValue: number,
+  ) => {
+    setCartItems(prev => {
+      const idx = prev.findIndex(i => i.id === id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+        return next;
+      }
+      return [...prev, { id, name, priceLabel, priceValue, quantity: 1 }];
+    });
+    setSelectedId(id);
+  }, []);
+
+  const changeQty = useCallback((id: string, delta: number) => {
+    setCartItems(prev => {
+      const idx = prev.findIndex(i => i.id === id);
+      if (idx < 0) return prev;
+      const newQty = prev[idx].quantity + delta;
+      if (newQty <= 0) {
+        const next = prev.filter(i => i.id !== id);
+        setSelectedId(cur => cur !== id ? cur : (next.length > 0 ? next[next.length - 1].id : null));
+        return next;
+      }
+      const next = [...prev];
+      next[idx] = { ...next[idx], quantity: newQty };
+      return next;
+    });
+  }, []);
+
+  const deleteItem = useCallback((id: string) => {
+    setCartItems(prev => {
+      const next = prev.filter(i => i.id !== id);
+      setSelectedId(cur => cur !== id ? cur : (next.length > 0 ? next[next.length - 1].id : null));
+      return next;
+    });
+  }, []);
+
+  const clearCart = useCallback(() => {
+    setCartItems([]);
+    setSelectedId(null);
+  }, []);
+
+  const cartActions: CartActions = useMemo(() => ({
+    addOrIncrement, changeQty, deleteItem, setSelectedId, clearCart,
+  }), [addOrIncrement, changeQty, deleteItem, clearCart]);
+
+  // ── Payment handlers ──────────────────────────────────────────────────────
+  const handleCharge   = useCallback(() => setPaymentActive(true),  []);
+  const handleCancel   = useCallback(() => setPaymentActive(false), []);
+  const handleComplete = useCallback(() => { setPaymentActive(false); clearCart(); }, [clearCart]);
+
+  const closeModal = useCallback(() => setDebitModal(false), []);
 
   if (!fontsLoaded) return null;
 
-  const handleCharge = () => setPaymentActive(true);
-  const handleCancel = () => setPaymentActive(false);
-  const handleComplete = (_method: string) => setPaymentActive(false);
-
   return (
     <View style={s.root}>
-      <ExpoStatusBar style="light" />
-      <StatusBar hidden />
-
-      {/* ── Dev controls strip ──────────────────────────────────────────── */}
-      <View style={s.controls}>
-        <Text style={s.controlsTitle}>Debit Nudge Experiment</Text>
-
-        <View style={s.controlsRight}>
-          {/* Variant pills */}
-          <View style={s.pills}>
-            {VARIANTS.map(({ key, label }) => (
-              <TouchableOpacity
-                key={key}
-                onPress={() => setVariant(key)}
-                style={[s.pill, variant === key && s.pillActive]}
-              >
-                <Text style={[s.pillLabel, variant === key && s.pillLabelActive]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* Dark toggle */}
-          <TouchableOpacity onPress={() => setDark(!dark)} style={[s.pill, dark && s.pillActive]}>
-            <Text style={[s.pillLabel, dark && s.pillLabelActive]}>
-              {dark ? 'Dark' : 'Light'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ── Duo device canvas ───────────────────────────────────────────── */}
       <ScrollView
-        horizontal
         contentContainerStyle={s.canvas}
+        showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
       >
-        {/* C1 — Merchant screen (600 × 912) */}
-        <View style={s.deviceC1}>
-          <Text style={s.deviceLabel}>Duo C1 — Merchant · 600 × 912</Text>
-          <View style={[s.deviceFrame, s.deviceFrameC1]}>
-            <RegisterDuoScreen
-              dark={dark}
-              nudgeVariant={variant}
-              paymentActive={paymentActive}
-              chargeAmount={chargeAmount}
-              onCharge={handleCharge}
-              onPaymentCancel={handleCancel}
-            />
+        {/* ── Experiment controls — above the device frame ─────────────────── */}
+        <View style={s.controls}>
+          <View style={s.controlsLeft}>
+            <Text style={s.controlsLabel}>Experiments</Text>
+            <View style={s.chipRow}>
+              <TouchableOpacity
+                style={s.chip}
+                activeOpacity={0.75}
+                onPress={() => setDebitModal(true)}
+              >
+                <View style={s.chipDot} />
+                <Text style={s.chipText}>Method #2 · Debit Nudge</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* C2 Variant selector */}
+          <View style={s.variantGroup}>
+            <Text style={s.controlsLabel}>C2 Variant</Text>
+            <View style={s.variantPills}>
+              {(['A', 'B', 'C'] as const).map(v => (
+                <TouchableOpacity
+                  key={v}
+                  style={[s.variantPill, c2Variant === v && s.variantPillActive]}
+                  onPress={() => setC2Variant(v)}
+                  activeOpacity={0.75}
+                >
+                  <Text style={[s.variantPillLabel, c2Variant === v && s.variantPillLabelActive]}>
+                    {`Variant ${v}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
 
-        {/* C2 — Customer screen (600 × 360) */}
-        <View style={s.deviceC2}>
-          <Text style={s.deviceLabel}>Duo C2 — Customer · 600 × 360</Text>
-          <View style={[s.deviceFrame, s.deviceFrameC2]}>
+        {/* ── Device container ─────────────────────────────────────────────── */}
+        <View style={s.device}>
+
+          {/* C2 — Customer screen */}
+          <View style={s.c2}>
             <RegisterDuoC2Screen
               dark={dark}
-              nudgeVariant={variant}
               paymentActive={paymentActive}
-              chargeAmount={chargeAmount}
+              cart={cart}
+              c2Variant={c2Variant}
               onPaymentComplete={handleComplete}
               onPaymentCancel={handleCancel}
             />
           </View>
-          {/* Experiment info card */}
-          <View style={s.experimentInfo}>
-            <Text style={s.experimentInfoTitle}>Experiment — {variant}</Text>
-            <Text style={s.experimentInfoBody}>
-              {!paymentActive
-                ? 'Press CHARGE on C1 to trigger the debit nudge on C2.'
-                : 'DebitNudgeCard is live on the customer screen.'}
-            </Text>
+
+          {/* C1 — Merchant screen + modal overlay (clipped to C1 bounds) */}
+          <View style={s.c1}>
+            <RegisterDuoScreen
+              dark={dark}
+              paymentActive={paymentActive}
+              cart={cart}
+              cartActions={cartActions}
+              onCharge={handleCharge}
+              onPaymentCancel={handleCancel}
+            />
+
+            {/* ── Debit nudge overlay — absolutely inside C1, clipped by overflow:hidden ── */}
+            <DebitNudgeModal
+              visible={debitModal}
+              onClose={closeModal}
+              onMaybeLater={closeModal}
+              onSetDefault={closeModal}
+              dark={dark}
+            />
           </View>
+
+          {/* Device shell overlay — sits on top, pointer-events off */}
+          <Image
+            source={require('./assets/backgrounds/std-device.png')}
+            style={s.shell}
+            pointerEvents="none"
+            resizeMode="cover"
+          />
         </View>
       </ScrollView>
     </View>
@@ -156,120 +246,135 @@ export default function App() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT = '#1976D2';
-
 const s = StyleSheet.create({
   root: {
     flex:            1,
-    backgroundColor: '#0A0A0A',
+    backgroundColor: '#1A1A1A',
   },
 
-  // Dev controls
+  canvas: {
+    flexGrow:        1,
+    alignItems:      'center',
+    justifyContent:  'center',
+    paddingVertical: 48,
+    gap:             20,
+  },
+
+  // ── Experiment control row ─────────────────────────────────────────────────
   controls: {
-    flexDirection:     'row',
-    alignItems:        'center',
-    justifyContent:    'space-between',
-    paddingHorizontal: 24,
-    paddingVertical:   12,
-    backgroundColor:   '#111111',
-    borderBottomWidth: 1,
-    borderBottomColor: '#222222',
+    width:          DEVICE_W,
+    flexDirection:  'row',
+    alignItems:     'flex-end',
+    justifyContent: 'space-between',
+    gap:            16,
   },
-  controlsTitle: {
-    color:      '#ffffff',
-    fontSize:   13,
-    fontWeight: '600',
-    letterSpacing: -0.2,
-  },
-  controlsRight: {
+
+  controlsLeft: {
     flexDirection: 'row',
     alignItems:    'center',
+    gap:           12,
+  },
+
+  controlsLabel: {
+    fontSize:      11,
+    fontWeight:    '600' as const,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase' as const,
+    color:         'rgba(255,255,255,0.4)',
+  },
+
+  chipRow: {
+    flexDirection: 'row',
     gap:           8,
   },
-  pills: {
-    flexDirection: 'row',
-    gap:           6,
+
+  // ── C2 Variant pills ──────────────────────────────────────────────────────
+  variantGroup: {
+    alignItems: 'flex-end',
+    gap:        6,
   },
-  pill: {
+  variantPills: {
+    flexDirection: 'row',
+    gap:           4,
+  },
+  variantPill: {
     paddingHorizontal: 12,
     paddingVertical:   6,
-    borderRadius:      999,
+    borderRadius:      8,
     borderWidth:       1,
-    borderColor:       '#444444',
+    borderColor:       'rgba(255,255,255,0.2)',
+    backgroundColor:   'rgba(255,255,255,0.07)',
   },
-  pillActive: {
-    backgroundColor: ACCENT,
-    borderColor:     ACCENT,
+  variantPillActive: {
+    backgroundColor: '#2544b7',
+    borderColor:     '#2544b7',
   },
-  pillLabel: {
-    color:      '#aaaaaa',
-    fontSize:   11,
-    fontWeight: '500',
+  variantPillLabel: {
+    fontSize:   13,
+    fontWeight: '500' as const,
+    color:      'rgba(255,255,255,0.55)',
   },
-  pillLabelActive: {
+  variantPillLabelActive: {
     color: '#ffffff',
   },
 
-  // Canvas
-  canvas: {
-    flexDirection: 'row',
-    alignItems:    'flex-start',
-    padding:       32,
-    gap:           40,
+  // Chip pill button
+  chip: {
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               6,
+    backgroundColor:   'rgba(30,154,247,0.15)',
+    borderWidth:       1,
+    borderColor:       'rgba(30,154,247,0.45)',
+    borderRadius:      20,
+    paddingVertical:   6,
+    paddingHorizontal: 12,
   },
 
-  // Device wrappers
-  deviceC1: {
-    gap: 12,
-  },
-  deviceC2: {
-    gap:       12,
-    alignSelf: 'flex-start',
-  },
-  deviceLabel: {
-    color:      '#666666',
-    fontSize:   11,
-    fontWeight: '500',
-    letterSpacing: 0.3,
-  },
-  deviceFrame: {
-    overflow:     'hidden',
-    borderRadius: 8,
-    borderWidth:  1,
-    borderColor:  '#222222',
-    shadowColor:  '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation:    8,
-  },
-  deviceFrameC1: {
-    width:  600,
-    height: 912,
-  },
-  deviceFrameC2: {
-    width:  600,
-    height: 360,
+  chipDot: {
+    width:           7,
+    height:          7,
+    borderRadius:    4,
+    backgroundColor: '#1E9AF7',
   },
 
-  // Experiment info
-  experimentInfo: {
-    backgroundColor: '#111111',
-    borderRadius:    8,
-    padding:         16,
-    gap:             4,
-    borderWidth:     1,
-    borderColor:     '#222222',
-  },
-  experimentInfoTitle: {
-    color:      '#ffffff',
+  chipText: {
     fontSize:   12,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+    fontWeight: '500' as const,
+    color:      '#1E9AF7',
+    letterSpacing: 0.1,
   },
-  experimentInfoBody: {
-    color:      '#888888',
-    fontSize:   11,
-    lineHeight: 16,
+
+  // ── Device frame ──────────────────────────────────────────────────────────
+  device: {
+    width:    DEVICE_W,
+    height:   DEVICE_H,
+    position: 'relative',
+  },
+
+  c2: {
+    position: 'absolute',
+    left:     C2_X,
+    top:      C2_Y,
+    width:    C2_W,
+    height:   C2_H,
+    overflow: 'hidden',
+  },
+
+  c1: {
+    position: 'absolute',
+    left:     C1_X,
+    top:      C1_Y,
+    width:    C1_W,
+    height:   C1_H,
+    overflow: 'hidden',   // clips the DebitNudgeModal to C1 bounds
+  },
+
+  shell: {
+    position: 'absolute',
+    top:      0,
+    left:     0,
+    width:    DEVICE_W,
+    height:   DEVICE_H,
   },
 });

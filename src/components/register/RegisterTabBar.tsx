@@ -1,39 +1,51 @@
 /**
  * RegisterTabBar — Register App
  *
- * Figma: "Chip bar" in the Tabs frame.
- * Four tabs: Products | Favorites | Categories | Keypad
- * The active tab gets a filled pill; inactive tabs are ghost text.
+ * Figma: Debit-nudge-experiment · node 34:13998 (Top bar → "Chips" row)
+ *
+ * Spec (from the Chips container):
+ *   paddingHorizontal : 4 px
+ *   paddingVertical   : 10 px
+ *   backgroundColor   : bgSurface (white)
+ *
+ *   Each chip: flex 1 (equal share of full 600 px width), px 12, py 16
+ *   Active bg : bgLight (#F6F6F6) — light grey pill
+ *   Inactive  : transparent
+ *   Keypad chip carries a leading card-reader-disconnected icon (24 px)
  */
 
 import React from 'react';
 import {
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
 import { ColorTokens } from '../../theme/colors';
-import { FontFamily, FontSize } from '../../theme/typography';
-import { Radius, Spacing } from '../../theme/spacing';
-import { Icon } from '../ui/Icon';
+import { Spacing } from '../../theme/spacing';
+import { Chip } from '../ui/Chip';
+import type { IconName } from '../ui/Icon';
+
+// ─── Tab definitions ──────────────────────────────────────────────────────────
 
 export type RegisterTab = 'products' | 'favorites' | 'categories' | 'keypad';
 
-const TAB_LABELS: Record<RegisterTab, string> = {
-  products:   'Products',
-  favorites:  'Favorites',
-  categories: 'Categories',
-  keypad:     'Keypad',
-};
+const TABS: { key: RegisterTab; label: string; icon?: IconName }[] = [
+  { key: 'products',   label: 'Products'   },
+  { key: 'favorites',  label: 'Favorites'  },
+  { key: 'categories', label: 'Categories' },
+  { key: 'keypad',     label: 'Keypad',    icon: 'card-reader-disconnected' },
+];
+
+// ─── Props ────────────────────────────────────────────────────────────────────
 
 export type RegisterTabBarProps = {
-  activeTab:      RegisterTab;
-  onTabChange:    (tab: RegisterTab) => void;
-  dark?:          boolean;
-  style?:         ViewStyle;
+  activeTab:   RegisterTab;
+  onTabChange: (tab: RegisterTab) => void;
+  dark?:       boolean;
+  style?:      ViewStyle;
 };
+
+// ─── Component ────────────────────────────────────────────────────────────────
 
 export function RegisterTabBar({
   activeTab,
@@ -46,72 +58,40 @@ export function RegisterTabBar({
   return (
     <View
       style={[
-        styles.bar,
-        { backgroundColor: palette.bgSurface, borderBottomColor: palette.border },
+        s.bar,
+        {
+          backgroundColor:  palette.bgSurface,
+          borderBottomColor: palette.border,
+        },
         style,
       ]}
     >
-      {(Object.keys(TAB_LABELS) as RegisterTab[]).map((tab) => {
-        const active = tab === activeTab;
-        return (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => onTabChange(tab)}
-            style={[
-              styles.tab,
-              active && [styles.tabActive, { backgroundColor: palette.bgBase }],
-            ]}
-            activeOpacity={0.7}
-          >
-            {tab === 'keypad' && (
-              <Icon
-                name="calculator"
-                size={16}
-                color={active ? '#fff' : palette.textPrimary}
-                style={{ marginRight: Spacing[6] }}
-              />
-            )}
-            <Text
-              style={[
-                styles.label,
-                {
-                  color:      active ? '#fff' : palette.textPrimary,
-                  fontFamily: active ? FontFamily.textMedium : FontFamily.textRegular,
-                  fontSize:   FontSize.bodySM,
-                },
-              ]}
-            >
-              {TAB_LABELS[tab]}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+      {TABS.map(({ key, label, icon }) => (
+        <Chip
+          key={key}
+          label={label}
+          active={key === activeTab}
+          icon={icon}
+          onPress={() => onTabChange(key)}
+          dark={dark}
+          style={s.chip}
+        />
+      ))}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const s = StyleSheet.create({
   bar: {
-    flexDirection:    'row',
-    alignItems:       'center',
-    paddingHorizontal: Spacing[16],
-    paddingVertical:   Spacing[12],
+    flexDirection:     'row',
+    alignItems:        'center',
+    paddingHorizontal: Spacing[4],
+    paddingVertical:   10,
     borderBottomWidth: 1,
-    gap:              Spacing[8],
   },
-  tab: {
-    flexDirection:    'row',
-    alignItems:       'center',
-    justifyContent:   'center',
-    paddingHorizontal: Spacing[16],
-    paddingVertical:  Spacing[8],
-    borderRadius:     Radius.full,
-    minWidth:         88,
-  },
-  tabActive: {
-    // filled dark pill
-  },
-  label: {
-    lineHeight: FontSize.bodySM * 1.4,
+  chip: {
+    flex: 1,
   },
 });

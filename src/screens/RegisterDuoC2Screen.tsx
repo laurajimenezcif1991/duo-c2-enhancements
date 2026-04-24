@@ -3,35 +3,55 @@
  *
  * Duo C2 (600 × 360) — customer-facing landscape screen.
  *
- * Idle state:   "Ready to pay" placeholder (mirrors standard C2 idle)
- * Payment state: PaymentFragment full-screen (DebitNudgeCard experiment)
+ * Three states:
  *
- * This screen is the primary experiment canvas — the DebitNudgeCard
- * renders here with A/B variant copy to test debit adoption lift.
+ *   1. IDLE    — cart is empty
+ *                Teal wave background + frosted-glass bottom banner
+ *                Figma node 34:12949
+ *
+ *   2. ORDER   — cart has items (synced live from C1)
+ *                Blue header "Total (N Items) / $XX.XX"  +  item list
+ *                Figma node 34:7624
+ *
+ *   3. PAYMENT — paymentActive = true
+ *                PaymentFragment full-screen (DebitNudgeCard experiment)
  *
  * Device: Duo C2 · 600 × 360 · Android OS
  */
 
 import React from 'react';
 import {
+  Image,
+  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { ColorTokens } from '../theme/colors';
+import { C2PaymentPrompt } from '../components/payment/PaymentFragment';
+import type { CartState } from '../types/cart';
+import type { C2Variant } from '../components/payment/PaymentFragment';
 import { FontFamily, FontSize } from '../theme/typography';
-import { SystemStatusBar } from '../components/ui/SystemStatusBar';
-import { BottomNavBar }    from '../components/ui/BottomNavBar';
-import { PaymentFragment } from '../components/payment/PaymentFragment';
-import type { NudgeVariant } from '../components/payment/DebitNudgeCard';
+
+// ─── Local assets ─────────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const BG_IMAGE     = require('../../assets/backgrounds/Rectangle 94644.png');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const BANNER_IMAGE = require('../../assets/backgrounds/Customer_screen_title.png');
+
+// ─── Design tokens (Figma 34:7624) ────────────────────────────────────────────
+
+const HEADER_BG     = '#1E9AF7';
+const HEADER_H      = 71;
+const ITEM_ROW_H    = 76;   // py-20 (20+20) + line-height 36 = 76px
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 type RegisterDuoC2ScreenProps = {
-  dark?:           boolean;
-  nudgeVariant?:   NudgeVariant;
-  paymentActive?:  boolean;
-  chargeAmount?:   string;
+  dark?:              boolean;
+  paymentActive?:     boolean;
+  cart?:              CartState;
+  c2Variant?:         C2Variant;
   onPaymentComplete?: (method: string) => void;
   onPaymentCancel?:   () => void;
 };
@@ -40,70 +60,174 @@ type RegisterDuoC2ScreenProps = {
 
 export function RegisterDuoC2Screen({
   dark             = false,
-  nudgeVariant     = 'savings',
   paymentActive    = false,
-  chargeAmount     = '$12.50',
+  cart,
+  c2Variant        = 'A',
   onPaymentComplete,
   onPaymentCancel,
 }: RegisterDuoC2ScreenProps) {
-  const palette = dark ? ColorTokens.dark : ColorTokens.light;
 
-  return (
-    <View style={[styles.root, { backgroundColor: palette.bgBase }]}>
-      {/* Thin OS status bar */}
-      <SystemStatusBar variant={dark ? 'black' : 'white'} />
-
-      {/* Main content area */}
-      <View style={styles.content}>
-        {paymentActive ? (
-          /* ── Experiment: DebitNudge full-screen ─────────────────────── */
-          <PaymentFragment
-            screen="c2"
-            chargeAmount={chargeAmount}
-            nudgeVariant={nudgeVariant}
-            dark={dark}
-            onComplete={onPaymentComplete}
-            onCancel={onPaymentCancel}
-            style={styles.fragment}
-          />
-        ) : (
-          /* ── Idle: ready-to-pay placeholder ─────────────────────────── */
-          <View style={styles.idle}>
-            <Text style={[styles.idleTitle, { color: palette.textPrimary, fontFamily: FontFamily.textMedium, fontSize: FontSize.headingXS }]}>
-              Ready for your order
-            </Text>
-            <Text style={[styles.idleSub, { color: palette.textSecondary, fontFamily: FontFamily.textRegular, fontSize: FontSize.bodyXS }]}>
-              Your cashier is preparing your total
-            </Text>
-          </View>
-        )}
+  // ── PAYMENT state ────────────────────────────────────────────────────────
+  if (paymentActive) {
+    return (
+      <View style={s.fill}>
+        <C2PaymentPrompt
+          chargeAmount={cart?.chargeAmount ?? '$0.00'}
+          onComplete={onPaymentComplete}
+          variant={c2Variant}
+        />
       </View>
+    );
+  }
 
-      {/* OS nav bar */}
-      <BottomNavBar />
+  const hasItems = (cart?.items?.length ?? 0) > 0;
+
+  // ── ORDER state ──────────────────────────────────────────────────────────
+  if (hasItems && cart) {
+    const itemCount = cart.items.reduce((sum, i) => sum + i.quantity, 0);
+    return (
+      <View style={s.fill}>
+
+        {/* Blue header */}
+        <View style={s.header}>
+          <Text style={s.headerLeft} numberOfLines={1}>
+            Total ({itemCount} {itemCount === 1 ? 'Item' : 'Items'})
+          </Text>
+          <Text style={s.headerRight} numberOfLines={1}>
+            {cart.chargeAmount}
+          </Text>
+        </View>
+
+        {/* Item list */}
+        <ScrollView
+          style={s.listScroll}
+          contentContainerStyle={s.listContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {cart.items.map(item => (
+            <View key={item.id} style={s.itemRow}>
+              <View style={s.itemLeft}>
+                <Text style={s.itemQty}>{item.quantity}X</Text>
+                <Text style={s.itemName} numberOfLines={2}>{item.name}</Text>
+              </View>
+              <Text style={s.itemPrice}>
+                {/* line total */}
+                ${(item.priceValue * item.quantity).toFixed(2)}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // ── IDLE state ───────────────────────────────────────────────────────────
+  return (
+    <View style={s.fill}>
+      <Image source={BG_IMAGE} style={s.background} resizeMode="cover" />
+      <View style={s.banner}>
+        <Image source={BANNER_IMAGE} style={s.bannerImage} resizeMode="cover" />
+      </View>
     </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  root: {
-    flex:  1,
-    width: 600,
+const s = StyleSheet.create({
+  fill: {
+    flex:     1,
+    width:    600,
+    overflow: 'hidden',
   },
-  content: {
-    flex: 1,
+
+  // ── Idle ──────────────────────────────────────────────────────────────────
+  background: {
+    ...StyleSheet.absoluteFillObject,
   },
-  fragment: {
-    flex: 1,
+  banner: {
+    position:        'absolute',
+    bottom:          0,
+    left:            0,
+    width:           600,
+    height:          66,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    // @ts-ignore — backdropFilter is valid CSS passthrough for React Native Web
+    backdropFilter:  'blur(4px)',
   },
-  idle: {
-    flex:           1,
-    alignItems:     'center',
-    justifyContent: 'center',
-    gap:            8,
+  bannerImage: {
+    width:  600,
+    height: 66,
   },
-  idleTitle: {},
-  idleSub: {},
+
+  // ── Order header ──────────────────────────────────────────────────────────
+  header: {
+    flexDirection:     'row',
+    alignItems:        'center',
+    justifyContent:    'space-between',
+    backgroundColor:   HEADER_BG,
+    height:            HEADER_H,
+    paddingHorizontal: 16,
+  },
+  headerLeft: {
+    flex:       1,
+    fontFamily: FontFamily.displayRegular,
+    fontSize:   28,
+    lineHeight: 36,
+    color:      '#ffffff',
+  },
+  headerRight: {
+    fontFamily: FontFamily.displayRegular,
+    fontSize:   28,
+    lineHeight: 36,
+    color:      '#ffffff',
+    textAlign:  'right',
+  },
+
+  // ── Item list ─────────────────────────────────────────────────────────────
+  listScroll: {
+    flex:            1,
+    backgroundColor: '#ffffff',
+  },
+  listContent: {
+    paddingBottom: 8,
+  },
+  itemRow: {
+    flexDirection:     'row',
+    alignItems:        'center',
+    justifyContent:    'space-between',
+    paddingHorizontal: 16,
+    paddingVertical:   20,
+    minHeight:         ITEM_ROW_H,
+    backgroundColor:   '#ffffff',
+  },
+  itemLeft: {
+    flex:          1,
+    flexDirection: 'row',
+    alignItems:    'flex-start',
+    gap:           10,
+    paddingRight:  12,
+  },
+  itemQty: {
+    fontFamily:    FontFamily.displayMedium,
+    fontSize:      FontSize.bodyXS,   // 16px
+    lineHeight:    20,
+    color:         '#767676',
+    textTransform: 'uppercase',
+    paddingTop:    8,                 // align to cap-height of 28px name
+  },
+  itemName: {
+    flex:       1,
+    fontFamily: FontFamily.textRegular,
+    fontSize:   28,
+    lineHeight: 36,
+    color:      '#000000',
+  },
+  itemPrice: {
+    fontFamily: FontFamily.textRegular,
+    fontSize:   28,
+    lineHeight: 36,
+    color:      '#000000',
+    textAlign:  'right',
+  },
 });

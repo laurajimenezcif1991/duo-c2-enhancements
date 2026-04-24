@@ -35,15 +35,18 @@ import PaymentMultiTenderSvg from '../../../assets/icons/Type=multi-tender.svg';
 import PaymentFingerprintSvg from '../../../assets/icons/Type=finger-print.svg';
 
 // ─── 24px subfolder ───────────────────────────────────────────────────────────
-import Register24Svg    from '../../../assets/icons/24/register.svg';
-import Drawer24Svg      from '../../../assets/icons/24/drawer.svg';
-import Dollar24Svg      from '../../../assets/icons/24/dollar.svg';
-import Discount24Svg    from '../../../assets/icons/24/discount.svg';
-import UserAdd24Svg     from '../../../assets/icons/24/user-add.svg';
-import Save24Svg        from '../../../assets/icons/24/save.svg';
-import CheckFilled24Svg from '../../../assets/icons/24/check-filled.svg';
-import Draw24Svg        from '../../../assets/icons/24/draw.svg';
-import Barcode24Svg     from '../../../assets/icons/24/bar-code.svg';
+import Register24Svg    from '../../../assets/icons/register.svg';
+import Drawer24Svg      from '../../../assets/icons/drawer.svg';
+import Dollar24Svg      from '../../../assets/icons/dollar.svg';
+import Discount24Svg    from '../../../assets/icons/discount.svg';
+import UserAdd24Svg     from '../../../assets/icons/user-add.svg';
+import Save24Svg        from '../../../assets/icons/save.svg';
+import CheckFilled24Svg from '../../../assets/icons/check-filled.svg';
+import Draw24Svg        from '../../../assets/icons/draw.svg';
+import Barcode24Svg     from '../../../assets/icons/bar-code.svg';
+
+// ─── Poynt card payment ───────────────────────────────────────────────────────
+import PoyntCardPaymentSvg from '../../../assets/icons/poynt-card-payment.svg';
 
 // ─── Card reader states ───────────────────────────────────────────────────────
 // @ts-ignore — spaces in filename are valid for static imports
@@ -106,34 +109,28 @@ import Scanner32Svg         from '../../../assets/icons/scanner _ 32.svg';
 import CashPayment32Svg     from '../../../assets/icons/cash-payment _ 32.svg';
 // @ts-ignore
 import CardPayment32Svg     from '../../../assets/icons/card-payment _ 32.svg';
+import CardBankSvg          from '../../../assets/icons/card-bank.svg';
+import CashSvg              from '../../../assets/icons/cash.svg';
+import EbtSvg               from '../../../assets/icons/ebt.svg';
 
-// ─── Large 60px ───────────────────────────────────────────────────────────────
+// ─── Large 60px (using available alternatives) ────────────────────────────────
+import Layers60Svg      from '../../../assets/icons/layers.svg';
+import Invoice60Svg     from '../../../assets/icons/invoice.svg';
 // @ts-ignore
-import Layers60Svg      from '../../../assets/icons/.layers _ 60.svg';
+import BankLg60Svg      from '../../../assets/icons/bank _ 24.svg';
+import CircleHelp60Svg  from '../../../assets/icons/circle.svg';
+import List60Svg        from '../../../assets/icons/bulleted-list.svg';
+import RegisterLg60Svg  from '../../../assets/icons/register.svg';
+import Apps60Svg        from '../../../assets/icons/apps.svg';
 // @ts-ignore
-import Invoice60Svg     from '../../../assets/icons/.invoice _ 60.svg';
+import Catalog60Svg     from '../../../assets/icons/catalog 2.svg';
 // @ts-ignore
-import BankLg60Svg      from '../../../assets/icons/.bank _ 60.svg';
+import TxLg60Svg        from '../../../assets/icons/transaction _ 24.svg';
+import ManualEntry60Svg from '../../../assets/icons/edit.svg';
+import Receipt60Svg     from '../../../assets/icons/receipt.svg';
+import Orders60Svg      from '../../../assets/icons/orders.svg';
 // @ts-ignore
-import CircleHelp60Svg  from '../../../assets/icons/.circle-help _ 60.svg';
-// @ts-ignore
-import List60Svg        from '../../../assets/icons/.list _ 60.svg';
-// @ts-ignore
-import RegisterLg60Svg  from '../../../assets/icons/.register _ 60.svg';
-// @ts-ignore
-import Apps60Svg        from '../../../assets/icons/.apps _ 60.svg';
-// @ts-ignore
-import Catalog60Svg     from '../../../assets/icons/.catalog _ 60.svg';
-// @ts-ignore
-import TxLg60Svg        from '../../../assets/icons/.transaction _ 60.svg';
-// @ts-ignore
-import ManualEntry60Svg from '../../../assets/icons/.manual-entry _ 60.svg';
-// @ts-ignore
-import Receipt60Svg     from '../../../assets/icons/.receipt _ 60.svg';
-// @ts-ignore
-import Orders60Svg      from '../../../assets/icons/.orders _ 60.svg';
-// @ts-ignore
-import CardTxLg60Svg    from '../../../assets/icons/.card-transaction _ 60.svg';
+import CardTxLg60Svg   from '../../../assets/icons/card-transaction _ 24.svg';
 
 // ─── Register icon set ────────────────────────────────────────────────────────
 import OkFilledSvg          from '../../../assets/icons/register icons/ok-filled.svg';
@@ -333,7 +330,7 @@ import GiftSvg             from '../../../assets/icons/gift.svg';
 import GrabVertSvg         from '../../../assets/icons/grab-vert.svg';
 import GraphSvg            from '../../../assets/icons/graph.svg';
 import GridSvg             from '../../../assets/icons/grid.svg';
-import GroupSvg            from '../../../assets/icons/group.svg';
+import GroupSvg            from '../../../assets/icons/users2.svg';
 import HamburgerSvg        from '../../../assets/icons/hamburger.svg';
 import HandicapSvg         from '../../../assets/icons/handicap.svg';
 import HeartSvg            from '../../../assets/icons/heart.svg';
@@ -387,6 +384,7 @@ import MinusSvg            from '../../../assets/icons/minus.svg';
 import MobilePhoneSvg      from '../../../assets/icons/mobile-phone.svg';
 import MoonSvg             from '../../../assets/icons/moon.svg';
 import NetworkSvg          from '../../../assets/icons/network.svg';
+import NfcSvg              from '../../../assets/icons/nfc.svg';
 import NoSvg               from '../../../assets/icons/no.svg';
 import NumberedListSvg     from '../../../assets/icons/numbered-list.svg';
 import OkSvg               from '../../../assets/icons/ok.svg';
@@ -532,7 +530,7 @@ export type IconName =
   // Hardware status 32px
   | 'contactless-32' | 'contactless-filled-32' | 'phone-error' | 'bluetooth-error'
   | 'device-warning' | 'network-error' | 'lcr-error' | 'scanner-32'
-  | 'cash-payment-32' | 'card-payment-32'
+  | 'cash-payment-32' | 'card-payment-32' | 'poynt-card-payment' | 'card-bank' | 'cash' | 'ebt'
   // Large 60px
   | 'layers-60' | 'invoice-60' | 'bank-lg' | 'circle-help' | 'list-60'
   | 'register-lg' | 'apps-60' | 'catalog-60' | 'transaction-lg' | 'manual-entry'
@@ -591,7 +589,7 @@ export type IconName =
   | 'logout' | 'mail-add' | 'mail-lock' | 'mail-open' | 'mail'
   | 'manage-products' | 'manage-reviews' | 'manage-services' | 'map-pin' | 'map'
   | 'marketing' | 'marketplaces' | 'media' | 'megaphone' | 'menu' | 'mic'
-  | 'minus' | 'mobile-phone' | 'moon' | 'network' | 'no' | 'numbered-list'
+  | 'minus' | 'mobile-phone' | 'moon' | 'network' | 'nfc' | 'no' | 'numbered-list'
   | 'ok' | 'online-ordering' | 'online-store' | 'orders' | 'page' | 'pages'
   | 'paint-bucket' | 'paintbrush' | 'pause' | 'pay-links-wallet' | 'pay-links'
   | 'payouts' | 'percent' | 'phone' | 'pin' | 'play' | 'plus' | 'pound'
@@ -646,6 +644,8 @@ const ICON_MAP: Record<IconName, SvgC> = {
   'device-warning': DeviceWarning32Svg, 'network-error': NetworkError32Svg,
   'lcr-error': LcrError32Svg, 'scanner-32': Scanner32Svg,
   'cash-payment-32': CashPayment32Svg, 'card-payment-32': CardPayment32Svg,
+  'poynt-card-payment': PoyntCardPaymentSvg,
+  'card-bank': CardBankSvg, 'cash': CashSvg, 'ebt': EbtSvg,
   // Large 60px
   'layers-60': Layers60Svg, 'invoice-60': Invoice60Svg, 'bank-lg': BankLg60Svg,
   'circle-help': CircleHelp60Svg, 'list-60': List60Svg, 'register-lg': RegisterLg60Svg,
@@ -749,7 +749,7 @@ const ICON_MAP: Record<IconName, SvgC> = {
   'map-pin': MapPinSvg, map: MapSvg, marketing: MarketingSvg,
   marketplaces: MarketplacesSvg, media: MediaSvg, megaphone: MegaphoneSvg,
   menu: MenuSvg, mic: MicSvg, minus: MinusSvg, 'mobile-phone': MobilePhoneSvg,
-  moon: MoonSvg, network: NetworkSvg, no: NoSvg, 'numbered-list': NumberedListSvg,
+  moon: MoonSvg, network: NetworkSvg, nfc: NfcSvg, no: NoSvg, 'numbered-list': NumberedListSvg,
   ok: OkSvg, 'online-ordering': OnlineOrderingSvg, 'online-store': OnlineStoreSvg,
   orders: OrdersSvg, page: PageSvg, pages: PagesSvg,
   'paint-bucket': PaintBucketSvg, paintbrush: PaintbrushSvg, pause: PauseSvg,

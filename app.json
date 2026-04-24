@@ -15,7 +15,7 @@
       },
       "package": "com.godaddy.stdebitnudge"
     },
-    "platforms": ["android"],
+    "platforms": ["android", "web"],
     "sdkVersion": "55.0.0"
   }
 }

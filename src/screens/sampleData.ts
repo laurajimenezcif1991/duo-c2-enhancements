@@ -1,12 +1,25 @@
 /**
- * Sample product data for the Register App template.
+ * Sample product data — ST Debit Nudge Experiment
  *
- * Images reference local assets/products/ — replace with real API data
- * in production. Mirrors the smart-terminal-design-system source set.
+ * Matches the Figma grid (Smart Terminal Glass 2.0 · node 3759:969 / 14:10212).
+ * Photos use the 10 local mock-item images; label-only products use a solid color.
  */
 import { ProductCardProps } from '../components/register/ProductCard';
 
+// ─── Local mock images (assets/mock-items/) ───────────────────────────────────
+const img0  = require('../../assets/mock-items/image.png');
+const img1  = require('../../assets/mock-items/image-1.png');
+const img2  = require('../../assets/mock-items/image-2.png');
+const img3  = require('../../assets/mock-items/image-3.png');
+const img4  = require('../../assets/mock-items/image-4.png');
+const img5  = require('../../assets/mock-items/image-5.png');
+const img6  = require('../../assets/mock-items/image-6.png');
+const img7  = require('../../assets/mock-items/image-7.png');
+const img8  = require('../../assets/mock-items/image-8.png');
+const img9  = require('../../assets/mock-items/image-9.png');
+
 export const SAMPLE_PRODUCTS: (ProductCardProps & { id: string })[] = [
+  // ── Row 1 ─────────────────────────────────────────────────────────────────
   {
     id:            'p1',
     name:          'Yellow Leather Backpack',
@@ -14,109 +27,174 @@ export const SAMPLE_PRODUCTS: (ProductCardProps & { id: string })[] = [
     originalPrice: '$35.00',
     quantity:      20,
     status:        'in-stock',
-    labelColor:    '#E6A817',
-    labelText:     'BAG',
+    imageSource:   img0,
   },
   {
     id:         'p2',
+    name:       'Hair Pin',
+    price:      '$35.00',
+    quantity:   12,
+    status:     'in-stock',
+    labelColor: '#1976D2',
+    labelText:  'HAIRP',
+  },
+  {
+    id:         'p3',
     name:       'Polo T-Shirt',
     price:      '',
     seeAll:     true,
     status:     'in-stock',
-    labelColor: '#1976D2',
-    labelText:  'POLO',
+    imageSource: img1,
   },
   {
-    id:            'p3',
+    id:            'p4',
     name:          'Leather Belts',
     price:         '$30.00',
     originalPrice: '$35.00',
     quantity:      5,
     status:        'low-in-stock',
-    labelColor:    '#5D4037',
-    labelText:     'BELT',
+    imageSource:   img2,
   },
+  // ── Row 2 ─────────────────────────────────────────────────────────────────
   {
-    id:         'p4',
+    id:         'p5',
     name:       'Travel Backpack',
     price:      '$30.00',
     quantity:   0,
     status:     'out-of-stock',
-    labelColor: '#455A64',
-    labelText:  'TRVL',
+    imageSource: img3,
   },
   {
-    id:         'p5',
+    id:         'p6',
     name:       'Flight Jacket',
     price:      '',
     seeAll:     true,
     status:     'in-stock',
-    labelColor: '#37474F',
-    labelText:  'JCKT',
+    imageSource: img4,
   },
   {
-    id:            'p6',
+    id:            'p7',
     name:          'Nike Sneakers',
     price:         '$30.00',
     originalPrice: '$35.00',
     quantity:      20,
     status:        'in-stock',
-    labelColor:    '#C62828',
-    labelText:     'SNKR',
-  },
-  {
-    id:         'p7',
-    name:       'Coffee Mugs',
-    price:      '$35.00',
-    quantity:   12,
-    labelColor: '#EF6C0F',
-    labelText:  'CMUGS',
-    status:     'in-stock',
+    imageSource:   img5,
   },
   {
     id:         'p8',
-    name:       'T-Shirt Collection',
+    name:       'Levis Jeans',
+    price:      '$35.00',
+    quantity:   12,
+    status:     'in-stock',
+    labelColor: '#C62828',
+    labelText:  'LEVIS',
+  },
+  // ── Row 3 ─────────────────────────────────────────────────────────────────
+  {
+    id:         'p9',
+    name:       'Coffe Mugs',
+    price:      '$35.00',
+    quantity:   12,
+    status:     'in-stock',
+    labelColor: '#EF6C0F',
+    labelText:  'CMUGS',
+  },
+  {
+    id:         'p10',
+    name:       'Card Holders',
+    price:      '$35.00',
+    quantity:   12,
+    status:     'in-stock',
+    labelColor: '#00796B',
+    labelText:  'CARDH',
+  },
+  {
+    id:         'p11',
+    name:       'Bnew T-Shirt Collection',
     price:      '',
     seeAll:     true,
     status:     'in-stock',
-    labelColor: '#1B5E20',
-    labelText:  'TSHRT',
+    imageSource: img6,
   },
   {
-    id:            'p9',
+    id:            'p12',
     name:          'Brown Jacket',
     price:         '$30.00',
     originalPrice: '$35.00',
     quantity:      20,
     status:        'in-stock',
-    labelColor:    '#6D4C41',
-    labelText:     'BRJKT',
+    imageSource:   img7,
   },
+  // ── Row 4 ─────────────────────────────────────────────────────────────────
   {
-    id:         'p10',
+    id:         'p13',
     name:       'Leather Wallet',
     price:      '$35.00',
     quantity:   12,
+    status:     'in-stock',
     labelColor: '#8B0053',
     labelText:  'WALLE',
-    status:     'in-stock',
   },
   {
-    id:         'p11',
+    id:         'p14',
     name:       "Men's Long Sleeve Shirt",
     price:      '$30.00',
     quantity:   3,
     status:     'low-in-stock',
-    labelColor: '#01579B',
-    labelText:  'SLEVE',
+    imageSource: img8,
   },
   {
-    id:         'p12',
-    name:       'Women Yellow Scarf',
+    id:       'p15',
+    name:     'Women Yellow Scarf',
+    price:    '$35.00',
+    quantity: 47,
+    status:   'in-stock',
+    imageSource: img9,
+  },
+  {
+    id:         'p16',
+    name:       'Necklace',
+    price:      '$35.00',
+    quantity:   12,
+    status:     'in-stock',
+    labelColor: '#2E7D32',
+    labelText:  'NECKL',
+  },
+  // ── Row 5 ─────────────────────────────────────────────────────────────────
+  {
+    id:         'p17',
+    name:       'High Heel',
     price:      '$35.00',
     quantity:   47,
     status:     'in-stock',
+    imageSource: img0,   // reuse closest match
+  },
+  {
+    id:         'p18',
+    name:       'Yellow Socks',
+    price:      '$25.00',
+    quantity:   12,
+    status:     'in-stock',
     labelColor: '#F9A825',
-    labelText:  'SCARF',
+    labelText:  'YSOCKS',
+  },
+  {
+    id:         'p19',
+    name:       'Bracelet',
+    price:      '$40.00',
+    quantity:   12,
+    status:     'in-stock',
+    labelColor: '#7B1FA2',
+    labelText:  'BRACE',
+  },
+  {
+    id:            'p20',
+    name:          'Blue Coat',
+    price:         '$30.00',
+    originalPrice: '$35.00',
+    quantity:      20,
+    status:        'in-stock',
+    imageSource:   img7,  // reuse closest match
   },
 ];
