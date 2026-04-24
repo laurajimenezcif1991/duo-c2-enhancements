@@ -74,12 +74,13 @@ export default function App() {
   const { width: winW, height: winH } = useWindowDimensions();
 
   // Scale the device frame to fit the browser viewport
-  const CONTROLS_H = 72; // controls bar above device
-  const V_PAD      = 80; // top + bottom canvas padding
-  const H_PAD      = 32; // left + right margin
+  // Controls are now a left sidebar (~180px wide)
+  const SIDEBAR_W = 180;
+  const V_PAD     = 48;  // top + bottom canvas padding
+  const H_PAD     = 24;  // right margin
   const deviceScale = Math.min(
-    (winW - H_PAD) / DEVICE_W,
-    (winH - V_PAD - CONTROLS_H) / DEVICE_H,
+    (winW - SIDEBAR_W - H_PAD) / DEVICE_W,
+    (winH - V_PAD) / DEVICE_H,
     1,   // never upscale above 100%
   );
 
@@ -170,24 +171,24 @@ export default function App() {
   return (
     <View style={s.root}>
       <View style={s.canvas}>
-        {/* ── Experiment controls ───────────────────────────────────────────── */}
-        <View style={[s.controls, { width: scaledW }]}>
-          <View style={s.controlsLeft}>
+
+        {/* ── Left sidebar: experiment controls ────────────────────────────── */}
+        <View style={s.sidebar}>
+          <View style={s.sidebarSection}>
             <Text style={s.controlsLabel}>Experiments</Text>
-            <View style={s.chipRow}>
-              <TouchableOpacity
-                style={s.chip}
-                activeOpacity={0.75}
-                onPress={() => setDebitModal(true)}
-              >
-                <View style={s.chipDot} />
-                <Text style={s.chipText}>Method #2 · Debit Nudge</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              style={s.chip}
+              activeOpacity={0.75}
+              onPress={() => setDebitModal(true)}
+            >
+              <View style={s.chipDot} />
+              <Text style={s.chipText}>Method #2{'\n'}Debit Nudge</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* C2 Variant selector */}
-          <View style={s.variantGroup}>
+          <View style={s.sidebarDivider} />
+
+          <View style={s.sidebarSection}>
             <Text style={s.controlsLabel}>C2 Variant</Text>
             <View style={s.variantPills}>
               {(['A', 'B', 'C'] as const).map(v => (
@@ -273,10 +274,29 @@ const s = StyleSheet.create({
 
   canvas: {
     flex:           1,
+    flexDirection:  'row',
     alignItems:     'center',
     justifyContent: 'center',
-    gap:            16,
-    paddingVertical: 16,
+    paddingVertical: 24,
+  },
+
+  // ── Left sidebar ──────────────────────────────────────────────────────────
+  sidebar: {
+    width:          180,
+    alignSelf:      'stretch',
+    justifyContent: 'center',
+    paddingLeft:    24,
+    paddingRight:   16,
+    gap:            24,
+  },
+
+  sidebarSection: {
+    gap: 10,
+  },
+
+  sidebarDivider: {
+    height:          1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
 
   // ── Experiment control row ─────────────────────────────────────────────────
@@ -312,12 +332,12 @@ const s = StyleSheet.create({
     gap:        6,
   },
   variantPills: {
-    flexDirection: 'row',
-    gap:           4,
+    flexDirection: 'column',
+    gap:           6,
   },
   variantPill: {
     paddingHorizontal: 12,
-    paddingVertical:   6,
+    paddingVertical:   8,
     borderRadius:      8,
     borderWidth:       1,
     borderColor:       'rgba(255,255,255,0.2)',
