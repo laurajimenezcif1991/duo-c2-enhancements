@@ -170,9 +170,8 @@ export default function App() {
     <View style={s.root}>
       <View style={s.canvas}>
 
-        {/* ── Controls panel — top-left, outside device, only during payment ── */}
-        {paymentActive && (
-          <View style={s.controlsPanel}>
+        {/* ── Controls panel — top-left, outside device ────────────────────── */}
+        <View style={s.controlsPanel}>
           <Text style={s.controlsLabel}>C1 bottom drawer</Text>
           <TouchableOpacity
             style={s.chip}
@@ -183,24 +182,27 @@ export default function App() {
             <Text style={s.chipText}>Method #2 · Debit Nudge</Text>
           </TouchableOpacity>
 
-          <View style={s.controlsDivider} />
+          {paymentActive && (
+            <>
+              <View style={s.controlsDivider} />
 
-          <Text style={s.controlsLabel}>C2 PF Variants</Text>
-          {(['A', 'B', 'C'] as const).map(v => (
-            <TouchableOpacity
-              key={v}
-              style={[s.chip, c2Variant === v && s.chipActive]}
-              onPress={() => setC2Variant(v)}
-              activeOpacity={0.75}
-            >
-              <View style={[s.chipDot, c2Variant === v ? s.chipDotActive : s.chipDotInactive]} />
-              <Text style={[s.chipText, c2Variant === v ? s.chipTextActive : s.chipTextInactive]}>
-                {`Variant ${v}`}
-              </Text>
-            </TouchableOpacity>
-          ))}
+              <Text style={s.controlsLabel}>C2 PF Variants</Text>
+              {(['A', 'B', 'C'] as const).map(v => (
+                <TouchableOpacity
+                  key={v}
+                  style={[s.chip, c2Variant === v && s.chipActive]}
+                  onPress={() => setC2Variant(v)}
+                  activeOpacity={0.75}
+                >
+                  <View style={[s.chipDot, c2Variant === v ? s.chipDotActive : s.chipDotInactive]} />
+                  <Text style={[s.chipText, c2Variant === v ? s.chipTextActive : s.chipTextInactive]}>
+                    {`Variant ${v}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
         </View>
-        )}
 
         {/* ── Device — centered, scaled to fit viewport ─────────────────────── */}
         <View style={{ width: scaledW, height: scaledH }}>
