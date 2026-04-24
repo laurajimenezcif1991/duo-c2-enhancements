@@ -173,7 +173,7 @@ export default function App() {
         {/* ── Controls panel — top-left, outside device, only during payment ── */}
         {paymentActive && (
           <View style={s.controlsPanel}>
-          <Text style={s.controlsLabel}>Experiments</Text>
+          <Text style={s.controlsLabel}>C1 bottom drawer</Text>
           <TouchableOpacity
             style={s.chip}
             activeOpacity={0.75}
@@ -185,7 +185,7 @@ export default function App() {
 
           <View style={s.controlsDivider} />
 
-          <Text style={s.controlsLabel}>C2 Variant</Text>
+          <Text style={s.controlsLabel}>C2 PF Variants</Text>
           {(['A', 'B', 'C'] as const).map(v => (
             <TouchableOpacity
               key={v}
