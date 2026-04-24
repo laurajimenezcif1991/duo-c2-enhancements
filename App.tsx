@@ -73,15 +73,13 @@ export default function App() {
   const [fontsLoaded] = useFonts(FONTS);
   const { width: winW, height: winH } = useWindowDimensions();
 
-  // Scale the device frame to fit the browser viewport
-  // Controls are now a left sidebar (~180px wide)
-  const SIDEBAR_W = 180;
-  const V_PAD     = 48;  // top + bottom canvas padding
-  const H_PAD     = 24;  // right margin
+  // Scale the device frame to fit the browser viewport — full canvas, no sidebar
+  const V_PAD = 48;
+  const H_PAD = 32;
   const deviceScale = Math.min(
-    (winW - SIDEBAR_W - H_PAD) / DEVICE_W,
+    (winW - H_PAD) / DEVICE_W,
     (winH - V_PAD) / DEVICE_H,
-    1,   // never upscale above 100%
+    1,
   );
 
   const [dark]          = useState(false);
@@ -172,22 +170,37 @@ export default function App() {
     <View style={s.root}>
       <View style={s.canvas}>
 
-        {/* ── Left sidebar: experiment controls ────────────────────────────── */}
-        <View style={s.sidebar}>
-          <View style={s.sidebarSection}>
-            <Text style={s.controlsLabel}>Experiments</Text>
+        {/* ── Controls panel — top-left, outside device ────────────────────── */}
+        <View style={s.controlsPanel}>
+          <Text style={s.controlsLabel}>Experiments</Text>
+          <TouchableOpacity
+            style={s.chip}
+            activeOpacity={0.75}
+            onPress={() => setDebitModal(true)}
+          >
+            <View style={s.chipDot} />
+            <Text style={s.chipText}>Method #2 · Debit Nudge</Text>
+          </TouchableOpacity>
+
+          <View style={s.controlsDivider} />
+
+          <Text style={s.controlsLabel}>C2 Variant</Text>
+          {(['A', 'B', 'C'] as const).map(v => (
             <TouchableOpacity
-              style={s.chip}
+              key={v}
+              style={[s.chip, c2Variant === v && s.chipActive]}
+              onPress={() => setC2Variant(v)}
               activeOpacity={0.75}
-              onPress={() => setDebitModal(true)}
             >
-              <View style={s.chipDot} />
-              <Text style={s.chipText}>Method #2{'\n'}Debit Nudge</Text>
+              <View style={[s.chipDot, c2Variant === v ? s.chipDotActive : s.chipDotInactive]} />
+              <Text style={[s.chipText, c2Variant === v ? s.chipTextActive : s.chipTextInactive]}>
+                {`Variant ${v}`}
+              </Text>
             </TouchableOpacity>
-          </View>
+          ))}
         </View>
 
-        {/* ── Device — scaled to fit viewport ──────────────────────────────── */}
+        {/* ── Device — centered, scaled to fit viewport ─────────────────────── */}
         <View style={{ width: scaledW, height: scaledH }}>
           <View style={[s.device, {
             // transform-origin: top-left via translate trick
@@ -237,23 +250,6 @@ export default function App() {
               pointerEvents="none"
               resizeMode="cover"
             />
-
-            {/* C2 Variant chips — top-left of C2 screen, above shell */}
-            <View style={s.variantOverlay}>
-              {(['A', 'B', 'C'] as const).map(v => (
-                <TouchableOpacity
-                  key={v}
-                  style={[s.variantChip, c2Variant === v && s.variantChipActive]}
-                  onPress={() => setC2Variant(v)}
-                  activeOpacity={0.75}
-                >
-                  <View style={[s.variantDot, c2Variant === v && s.variantDotActive]} />
-                  <Text style={[s.variantChipText, c2Variant === v && s.variantChipTextActive]}>
-                    {`Variant ${v}`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
           </View>
         </View>
       </View>
@@ -271,32 +267,27 @@ const s = StyleSheet.create({
 
   canvas: {
     flex:           1,
-    flexDirection:  'row',
     alignItems:     'center',
     justifyContent: 'center',
-    paddingVertical: 24,
   },
 
-  // ── Left sidebar ──────────────────────────────────────────────────────────
-  sidebar: {
-    width:          160,
-    alignSelf:      'stretch',
-    justifyContent: 'center',
-    paddingLeft:    24,
-    paddingRight:   16,
-    gap:            24,
+  // ── Controls panel — absolutely positioned top-left ───────────────────────
+  controlsPanel: {
+    position:  'absolute',
+    top:       24,
+    left:      24,
+    gap:       8,
+    alignItems: 'flex-start',
   },
 
-  sidebarSection: {
-    gap: 10,
-  },
-
-  sidebarDivider: {
+  controlsDivider: {
     height:          1,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    width:           '100%',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginVertical:  4,
   },
 
-  // ── Experiment control row ─────────────────────────────────────────────────
+  // ── Experiment control row (unused keys kept for reference) ──────────────
   controls: {
     flexDirection:  'row',
     alignItems:     'flex-end',
@@ -323,46 +314,21 @@ const s = StyleSheet.create({
     gap:           8,
   },
 
-  // ── C2 Variant chips — overlaid top-left of C2 screen ────────────────────
-  variantOverlay: {
-    position:      'absolute',
-    left:          C2_X + 28,
-    top:           C2_Y + 22,
-    flexDirection: 'row',
-    gap:           8,
-    zIndex:        20,
-  },
-  variantChip: {
-    flexDirection:     'row',
-    alignItems:        'center',
-    gap:               6,
-    backgroundColor:   'rgba(255,255,255,0.12)',
-    borderWidth:       1,
-    borderColor:       'rgba(255,255,255,0.25)',
-    borderRadius:      20,
-    paddingVertical:   6,
-    paddingHorizontal: 12,
-  },
-  variantChipActive: {
+  // ── Chip variants (active / inactive states) ──────────────────────────────
+  chipActive: {
     backgroundColor: 'rgba(30,154,247,0.18)',
     borderColor:     'rgba(30,154,247,0.55)',
   },
-  variantDot: {
-    width:           7,
-    height:          7,
-    borderRadius:    4,
-    backgroundColor: 'rgba(255,255,255,0.35)',
+  chipDotInactive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
-  variantDotActive: {
+  chipDotActive: {
     backgroundColor: '#1E9AF7',
   },
-  variantChipText: {
-    fontSize:      12,
-    fontWeight:    '500' as const,
-    letterSpacing: 0.1,
-    color:         'rgba(255,255,255,0.5)',
+  chipTextInactive: {
+    color: 'rgba(255,255,255,0.4)',
   },
-  variantChipTextActive: {
+  chipTextActive: {
     color: '#1E9AF7',
   },
 
