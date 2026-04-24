@@ -35,7 +35,7 @@ import { FontFamily, FontSize } from '../theme/typography';
 // ─── Local assets ─────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const BG_IMAGE     = require('../../assets/backgrounds/Rectangle 94644.png');
+const BG_IMAGE     = require('../../assets/backgrounds/rectangle-bg.png');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const BANNER_IMAGE = require('../../assets/backgrounds/Customer_screen_title.png');
 
@@ -136,9 +136,11 @@ export function RegisterDuoC2Screen({
 
 const s = StyleSheet.create({
   fill: {
-    flex:     1,
-    width:    600,
-    overflow: 'hidden',
+    flex:            1,
+    width:           600,
+    height:          '100%' as any,
+    overflow:        'hidden',
+    backgroundColor: '#0a8fa8',
   },
 
   // ── Idle ──────────────────────────────────────────────────────────────────
