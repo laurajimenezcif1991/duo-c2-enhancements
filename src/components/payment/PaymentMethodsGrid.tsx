@@ -67,7 +67,7 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 type PaymentMethodsGridProps = {
-  selected:  MethodId;
+  selected:  MethodId | null;
   locked:    boolean;
   onSelect:  (m: PaymentMethod) => void;
   animY:     Animated.Value;

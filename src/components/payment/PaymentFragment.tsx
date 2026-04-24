@@ -127,7 +127,7 @@ export function C1PaymentPanel({
   const [activeTab, setActiveTab] = useState<'summary' | 'notes' | 'receipt'>('summary');
 
   // ── Grid state ────────────────────────────────────────────────────────────
-  const [selectedMethod, setSelectedMethod] = useState<MethodId>('debit');
+  const [selectedMethod, setSelectedMethod] = useState<MethodId | null>(null);
   const [lockedMethod, setLockedMethod]     = useState<string | null>(null);
   const [lockedColor,  setLockedColor]      = useState<string | null>(null);
   const [gridOpen, setGridOpen]             = useState(false);
