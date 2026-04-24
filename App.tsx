@@ -25,6 +25,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useFonts } from 'expo-font';
@@ -70,6 +71,17 @@ function formatTotal(value: number): string {
 
 export default function App() {
   const [fontsLoaded] = useFonts(FONTS);
+  const { width: winW, height: winH } = useWindowDimensions();
+
+  // Scale the device frame to fit the browser viewport
+  const CONTROLS_H = 72; // controls bar above device
+  const V_PAD      = 80; // top + bottom canvas padding
+  const H_PAD      = 32; // left + right margin
+  const deviceScale = Math.min(
+    (winW - H_PAD) / DEVICE_W,
+    (winH - V_PAD - CONTROLS_H) / DEVICE_H,
+    1,   // never upscale above 100%
+  );
 
   const [dark]          = useState(false);
   const [paymentActive, setPaymentActive] = useState(false);
@@ -152,15 +164,14 @@ export default function App() {
 
   if (!fontsLoaded) return null;
 
+  const scaledW = DEVICE_W * deviceScale;
+  const scaledH = DEVICE_H * deviceScale;
+
   return (
     <View style={s.root}>
-      <ScrollView
-        contentContainerStyle={s.canvas}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-      >
-        {/* ── Experiment controls — above the device frame ─────────────────── */}
-        <View style={s.controls}>
+      <View style={s.canvas}>
+        {/* ── Experiment controls ───────────────────────────────────────────── */}
+        <View style={[s.controls, { width: scaledW }]}>
           <View style={s.controlsLeft}>
             <Text style={s.controlsLabel}>Experiments</Text>
             <View style={s.chipRow}>
@@ -195,51 +206,59 @@ export default function App() {
           </View>
         </View>
 
-        {/* ── Device container ─────────────────────────────────────────────── */}
-        <View style={s.device}>
+        {/* ── Device — scaled to fit viewport ──────────────────────────────── */}
+        <View style={{ width: scaledW, height: scaledH }}>
+          <View style={[s.device, {
+            // transform-origin: top-left via translate trick
+            transform: [
+              { translateX: -(DEVICE_W - scaledW) / 2 },
+              { translateY: -(DEVICE_H - scaledH) / 2 },
+              { scale: deviceScale },
+            ],
+          }]}>
 
-          {/* C2 — Customer screen */}
-          <View style={s.c2}>
-            <RegisterDuoC2Screen
-              dark={dark}
-              paymentActive={paymentActive}
-              cart={cart}
-              c2Variant={c2Variant}
-              onPaymentComplete={handleComplete}
-              onPaymentCancel={handleCancel}
+            {/* C2 — Customer screen */}
+            <View style={s.c2}>
+              <RegisterDuoC2Screen
+                dark={dark}
+                paymentActive={paymentActive}
+                cart={cart}
+                c2Variant={c2Variant}
+                onPaymentComplete={handleComplete}
+                onPaymentCancel={handleCancel}
+              />
+            </View>
+
+            {/* C1 — Merchant screen + modal overlay */}
+            <View style={s.c1}>
+              <RegisterDuoScreen
+                dark={dark}
+                paymentActive={paymentActive}
+                cart={cart}
+                cartActions={cartActions}
+                onCharge={handleCharge}
+                onPaymentCancel={handleCancel}
+              />
+
+              <DebitNudgeModal
+                visible={debitModal}
+                onClose={closeModal}
+                onMaybeLater={closeModal}
+                onSetDefault={closeModal}
+                dark={dark}
+              />
+            </View>
+
+            {/* Device shell overlay */}
+            <Image
+              source={require('./assets/backgrounds/std-device.png')}
+              style={s.shell}
+              pointerEvents="none"
+              resizeMode="cover"
             />
           </View>
-
-          {/* C1 — Merchant screen + modal overlay (clipped to C1 bounds) */}
-          <View style={s.c1}>
-            <RegisterDuoScreen
-              dark={dark}
-              paymentActive={paymentActive}
-              cart={cart}
-              cartActions={cartActions}
-              onCharge={handleCharge}
-              onPaymentCancel={handleCancel}
-            />
-
-            {/* ── Debit nudge overlay — absolutely inside C1, clipped by overflow:hidden ── */}
-            <DebitNudgeModal
-              visible={debitModal}
-              onClose={closeModal}
-              onMaybeLater={closeModal}
-              onSetDefault={closeModal}
-              dark={dark}
-            />
-          </View>
-
-          {/* Device shell overlay — sits on top, pointer-events off */}
-          <Image
-            source={require('./assets/backgrounds/std-device.png')}
-            style={s.shell}
-            pointerEvents="none"
-            resizeMode="cover"
-          />
         </View>
-      </ScrollView>
+      </View>
     </View>
   );
 }
@@ -253,16 +272,15 @@ const s = StyleSheet.create({
   },
 
   canvas: {
-    flexGrow:        1,
-    alignItems:      'center',
-    justifyContent:  'center',
-    paddingVertical: 48,
-    gap:             20,
+    flex:           1,
+    alignItems:     'center',
+    justifyContent: 'center',
+    gap:            16,
+    paddingVertical: 16,
   },
 
   // ── Experiment control row ─────────────────────────────────────────────────
   controls: {
-    width:          DEVICE_W,
     flexDirection:  'row',
     alignItems:     'flex-end',
     justifyContent: 'space-between',
