@@ -185,26 +185,6 @@ export default function App() {
               <Text style={s.chipText}>Method #2{'\n'}Debit Nudge</Text>
             </TouchableOpacity>
           </View>
-
-          <View style={s.sidebarDivider} />
-
-          <View style={s.sidebarSection}>
-            <Text style={s.controlsLabel}>C2 Variant</Text>
-            <View style={s.variantPills}>
-              {(['A', 'B', 'C'] as const).map(v => (
-                <TouchableOpacity
-                  key={v}
-                  style={[s.variantPill, c2Variant === v && s.variantPillActive]}
-                  onPress={() => setC2Variant(v)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={[s.variantPillLabel, c2Variant === v && s.variantPillLabelActive]}>
-                    {`Variant ${v}`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
         </View>
 
         {/* ── Device — scaled to fit viewport ──────────────────────────────── */}
@@ -257,6 +237,23 @@ export default function App() {
               pointerEvents="none"
               resizeMode="cover"
             />
+
+            {/* C2 Variant chips — top-left of C2 screen, above shell */}
+            <View style={s.variantOverlay}>
+              {(['A', 'B', 'C'] as const).map(v => (
+                <TouchableOpacity
+                  key={v}
+                  style={[s.variantChip, c2Variant === v && s.variantChipActive]}
+                  onPress={() => setC2Variant(v)}
+                  activeOpacity={0.75}
+                >
+                  <View style={[s.variantDot, c2Variant === v && s.variantDotActive]} />
+                  <Text style={[s.variantChipText, c2Variant === v && s.variantChipTextActive]}>
+                    {`Variant ${v}`}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
       </View>
@@ -282,7 +279,7 @@ const s = StyleSheet.create({
 
   // ── Left sidebar ──────────────────────────────────────────────────────────
   sidebar: {
-    width:          180,
+    width:          160,
     alignSelf:      'stretch',
     justifyContent: 'center',
     paddingLeft:    24,
@@ -326,34 +323,47 @@ const s = StyleSheet.create({
     gap:           8,
   },
 
-  // ── C2 Variant pills ──────────────────────────────────────────────────────
-  variantGroup: {
-    alignItems: 'flex-end',
-    gap:        6,
+  // ── C2 Variant chips — overlaid top-left of C2 screen ────────────────────
+  variantOverlay: {
+    position:      'absolute',
+    left:          C2_X + 28,
+    top:           C2_Y + 22,
+    flexDirection: 'row',
+    gap:           8,
+    zIndex:        20,
   },
-  variantPills: {
-    flexDirection: 'column',
-    gap:           6,
-  },
-  variantPill: {
-    paddingHorizontal: 12,
-    paddingVertical:   8,
-    borderRadius:      8,
+  variantChip: {
+    flexDirection:     'row',
+    alignItems:        'center',
+    gap:               6,
+    backgroundColor:   'rgba(255,255,255,0.12)',
     borderWidth:       1,
-    borderColor:       'rgba(255,255,255,0.2)',
-    backgroundColor:   'rgba(255,255,255,0.07)',
+    borderColor:       'rgba(255,255,255,0.25)',
+    borderRadius:      20,
+    paddingVertical:   6,
+    paddingHorizontal: 12,
   },
-  variantPillActive: {
-    backgroundColor: '#2544b7',
-    borderColor:     '#2544b7',
+  variantChipActive: {
+    backgroundColor: 'rgba(30,154,247,0.18)',
+    borderColor:     'rgba(30,154,247,0.55)',
   },
-  variantPillLabel: {
-    fontSize:   13,
-    fontWeight: '500' as const,
-    color:      'rgba(255,255,255,0.55)',
+  variantDot: {
+    width:           7,
+    height:          7,
+    borderRadius:    4,
+    backgroundColor: 'rgba(255,255,255,0.35)',
   },
-  variantPillLabelActive: {
-    color: '#ffffff',
+  variantDotActive: {
+    backgroundColor: '#1E9AF7',
+  },
+  variantChipText: {
+    fontSize:      12,
+    fontWeight:    '500' as const,
+    letterSpacing: 0.1,
+    color:         'rgba(255,255,255,0.5)',
+  },
+  variantChipTextActive: {
+    color: '#1E9AF7',
   },
 
   // Chip pill button
