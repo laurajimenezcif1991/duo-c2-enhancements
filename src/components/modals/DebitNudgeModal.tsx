@@ -151,7 +151,7 @@ export function DebitNudgeModal({
         >
           {/* Title */}
           <Text style={[s.title, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
-            Set Debit payment as your preferred method
+            Encourage debit payments
           </Text>
 
           {/* Illustration */}
