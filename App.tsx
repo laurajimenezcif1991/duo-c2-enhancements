@@ -179,7 +179,7 @@ export default function App() {
             onPress={() => setDebitModal(true)}
           >
             <View style={s.chipDot} />
-            <Text style={s.chipText}>Method #2 · Debit Nudge</Text>
+            <Text style={s.chipText}>Encourage debit payments</Text>
           </TouchableOpacity>
 
           {paymentActive && (
