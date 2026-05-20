@@ -735,7 +735,7 @@ const s = StyleSheet.create({
     flex: 1, height: 120, borderRadius: Radius.md,
     alignItems: 'center', justifyContent: 'center', gap: Spacing[8],
   },
-  presetCardSelected: { borderWidth: 2, borderColor: TEAL_DARK, borderRadius: Radius.md },
+  presetCardSelected: { borderWidth: 0 },
   presetValue: { fontSize: FontSize.headingSM, lineHeight: FontSize.headingSM * 1.2, textAlign: 'center' },
   presetLabel: { fontSize: FontSize.bodySM, lineHeight: FontSize.bodySM * 1.5, textAlign: 'center', paddingHorizontal: Spacing[4] },
 
