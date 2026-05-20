@@ -43,9 +43,11 @@ export type RegisterTopBarProps = {
   onSalePress?:   () => void;
   onSearchPress?: () => void;
   onBarcodePress?: () => void;
-  showOrderBadge?: boolean;
-  orderCount?:    number;
-  onOrderPress?:  () => void;
+  showOrderBadge?:    boolean;
+  orderCount?:        number;
+  onOrderPress?:      () => void;
+  /** When true, replaces the Order pill with a plain X-circle close button */
+  orderDetailsOpen?:  boolean;
   /** Last-tapped cart item shown in the item row */
   selectedItem?:  SelectedItemInfo | null;
   onItemIncrement?: () => void;
@@ -59,20 +61,21 @@ export type RegisterTopBarProps = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function RegisterTopBar({
-  saleName        = 'Sale',
+  saleName          = 'Sale',
   onMenuPress,
   onSalePress,
   onSearchPress,
   onBarcodePress,
-  showOrderBadge  = false,
-  orderCount      = 0,
+  showOrderBadge    = false,
+  orderCount        = 0,
   onOrderPress,
-  selectedItem    = null,
+  orderDetailsOpen  = false,
+  selectedItem      = null,
   onItemIncrement,
   onItemDecrement,
   onItemDelete,
   onItemEdit,
-  dark            = false,
+  dark              = false,
   style,
 }: RegisterTopBarProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
@@ -122,26 +125,38 @@ export function RegisterTopBar({
           </TouchableOpacity>
 
           {showOrderBadge && (
-            <TouchableOpacity
-              onPress={onOrderPress}
-              style={[s.orderPill, { backgroundColor: palette.bgBase }]}
-              activeOpacity={0.8}
-            >
-              <View style={s.orderLeft}>
-                <Icon name="cart" size={18} color="#fff" />
-                <Text style={[s.orderLabel, { fontFamily: FontFamily.textMedium, fontSize: FontSize.headingXXS }]}>
-                  Order
-                </Text>
-              </View>
-              <View style={[
-                s.orderBadge,
-                { backgroundColor: orderCount > 0 ? palette.contentPrimary : palette.contentTertiary },
-              ]}>
-                <Text style={[s.orderBadgeText, { fontFamily: FontFamily.textMedium, fontSize: FontSize.headingXXS }]}>
-                  {orderCount}
-                </Text>
-              </View>
-            </TouchableOpacity>
+            orderDetailsOpen ? (
+              /* X close button — shown while Order Details is open */
+              <TouchableOpacity
+                onPress={onOrderPress}
+                style={[s.closePill, { backgroundColor: palette.bgBase }]}
+                activeOpacity={0.8}
+              >
+                <Icon name="x" size={20} color="#ffffff" />
+              </TouchableOpacity>
+            ) : (
+              /* Normal Order pill */
+              <TouchableOpacity
+                onPress={onOrderPress}
+                style={[s.orderPill, { backgroundColor: palette.bgBase }]}
+                activeOpacity={0.8}
+              >
+                <View style={s.orderLeft}>
+                  <Icon name="cart" size={18} color="#fff" />
+                  <Text style={[s.orderLabel, { fontFamily: FontFamily.textMedium, fontSize: FontSize.headingXXS }]}>
+                    Order
+                  </Text>
+                </View>
+                <View style={[
+                  s.orderBadge,
+                  { backgroundColor: orderCount > 0 ? palette.contentPrimary : palette.contentTertiary },
+                ]}>
+                  <Text style={[s.orderBadgeText, { fontFamily: FontFamily.textMedium, fontSize: FontSize.headingXXS }]}>
+                    {orderCount}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )
           )}
         </View>
       </View>
@@ -282,6 +297,15 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems:    'center',
     gap:           Spacing[8],
+  },
+
+  // X close pill — shown when Order Details screen is open (same shape as orderPill)
+  closePill: {
+    width:           44,
+    height:          44,
+    borderRadius:    Radius.full,
+    alignItems:      'center',
+    justifyContent:  'center',
   },
 
   // Order pill — Figma: h=44 pl=6 pr=5 py=4 rounded=30 w=126

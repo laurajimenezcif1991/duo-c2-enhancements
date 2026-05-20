@@ -131,47 +131,68 @@ export function RegisterDuoScreen({
     <View style={[s.root, { backgroundColor: palette.bgBase }]}>
       <SystemStatusBar variant={dark ? 'black' : 'white'} />
 
+      {/* Shared top bar — Order pill swaps to X when order details is open */}
       <RegisterTopBar
         dark={dark}
         showOrderBadge
         orderCount={cart.orderCount}
-        onOrderPress={() => setOrderDetailsVisible(true)}
-        selectedItem={selectedItemInfo}
+        orderDetailsOpen={orderDetailsVisible}
+        onOrderPress={orderDetailsVisible
+          ? () => setOrderDetailsVisible(false)
+          : () => setOrderDetailsVisible(true)
+        }
+        selectedItem={orderDetailsVisible ? null : selectedItemInfo}
         onItemIncrement={handleIncrement}
         onItemDecrement={handleDecrement}
         onItemDelete={handleDelete}
         onItemEdit={() => { /* future */ }}
       />
 
-      <RegisterTabBar
-        activeTab={tab}
-        onTabChange={setTab}
-        dark={dark}
-      />
+      {/* ── Content area: swaps between register grid and order details ───── */}
+      {orderDetailsVisible ? (
+        <OrderDetailsScreen
+          cart={cart}
+          cartActions={cartActions}
+          taxEnabled={taxEnabled}
+          onTaxToggle={() => setTax(t => !t)}
+          onCancel={() => setOrderDetailsVisible(false)}
+          onCharge={() => { setOrderDetailsVisible(false); onCharge?.(); }}
+          onEditItem={handleEditOrderItem}
+          dark={dark}
+        />
+      ) : (
+        <>
+          <RegisterTabBar
+            activeTab={tab}
+            onTabChange={setTab}
+            dark={dark}
+          />
 
-      <ProductGrid
-        products={SAMPLE_PRODUCTS as GridProduct[]}
-        dark={dark}
-        onProductPress={handleProductPress}
-      />
+          <ProductGrid
+            products={SAMPLE_PRODUCTS as GridProduct[]}
+            dark={dark}
+            onProductPress={handleProductPress}
+          />
 
-      <RegisterActionBar
-        taxEnabled={taxEnabled}
-        onTaxToggle={() => setTax(t => !t)}
-        showDrawer
-        dark={dark}
-      />
+          <RegisterActionBar
+            taxEnabled={taxEnabled}
+            onTaxToggle={() => setTax(t => !t)}
+            showDrawer
+            dark={dark}
+          />
 
-      <RegisterBottomBar
-        chargeAmount={cart.chargeAmount}
-        onCharge={onCharge}
-        onCancel={() => {}}
-        dark={dark}
-      />
+          <RegisterBottomBar
+            chargeAmount={cart.chargeAmount}
+            onCharge={onCharge}
+            onCancel={() => {}}
+            dark={dark}
+          />
+        </>
+      )}
 
       <BottomNavBar />
 
-      {/* C1 payment panel — floats above the register as an absolute overlay */}
+      {/* C1 payment panel — floats above as an absolute overlay */}
       <C1PaymentPanel
         visible={paymentActive}
         chargeAmount={cart.chargeAmount}
@@ -184,20 +205,6 @@ export function RegisterDuoScreen({
         product={itemDetailProduct}
         onClose={onCloseItemDetail ?? (() => {})}
         onAddToOrder={handleAddToOrder}
-        dark={dark}
-      />
-
-      {/* Order details — full-screen overlay, slides in when Order pill tapped */}
-      <OrderDetailsScreen
-        visible={orderDetailsVisible}
-        cart={cart}
-        cartActions={cartActions}
-        taxEnabled={taxEnabled}
-        onTaxToggle={() => setTax(t => !t)}
-        onClose={() => setOrderDetailsVisible(false)}
-        onCancel={() => setOrderDetailsVisible(false)}
-        onCharge={() => { setOrderDetailsVisible(false); onCharge?.(); }}
-        onEditItem={handleEditOrderItem}
         dark={dark}
       />
     </View>
