@@ -426,11 +426,19 @@ function ModifierSection({ group, checkValue, radioValue, onToggleCheck, onSelec
                 onPress={() => group.type === 'checkbox' ? onToggleCheck(opt.id) : onSelectRadio(opt.id)}
               >
                 {group.type === 'checkbox' ? (
-                  <View style={[s.checkbox, { borderColor: palette.contentTertiary }, selected && { backgroundColor: palette.bgBase, borderColor: palette.bgBase }]}>
-                    {selected && <Icon name="checkmark" size={12} color="#ffffff" />}
+                  <View style={[
+                    s.checkbox,
+                    { borderColor: palette.contentTertiary },
+                    selected && { backgroundColor: '#61EDEA', borderColor: '#61EDEA' },
+                  ]}>
+                    {selected && <Icon name="checkmark" size={12} color="#111111" />}
                   </View>
                 ) : (
-                  <View style={[s.radio, { borderColor: palette.borderDisabled }, selected && { borderColor: palette.bgBase, borderWidth: 6 }]} />
+                  <View style={[
+                    s.radio,
+                    { borderColor: palette.borderDisabled, borderWidth: 1 },
+                    selected && { borderColor: '#61EDEA', borderWidth: 6, backgroundColor: '#ffffff' },
+                  ]} />
                 )}
                 <Text style={[s.optionLabel, { fontFamily: FontFamily.textRegular }]} numberOfLines={2}>
                   <Text style={{ color: palette.textPrimary }}>{opt.label} </Text>
