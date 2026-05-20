@@ -56,8 +56,17 @@ export type AddToCartPayload = {
   fee?:       CartAppliedModifier | null;
 };
 
+export type UpdateItemPayload = {
+  note?:     string | undefined;
+  addOns?:   CartAddOn[] | undefined;
+  discount?: CartAppliedModifier | null | undefined;
+  fee?:      CartAppliedModifier | null | undefined;
+  quantity?: number | undefined;
+};
+
 export type CartActions = {
   addOrIncrement: (payload: AddToCartPayload) => void;
+  updateItem:     (id: string, updates: UpdateItemPayload) => void;
   changeQty:      (id: string, delta: number) => void;
   deleteItem:     (id: string) => void;
   setSelectedId:  (id: string | null) => void;

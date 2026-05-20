@@ -30,7 +30,7 @@ import { useFonts } from 'expo-font';
 import { RegisterDuoScreen }   from './src/screens/RegisterDuoScreen';
 import { RegisterDuoC2Screen } from './src/screens/RegisterDuoC2Screen';
 import { DebitNudgeModal }     from './src/components/modals/DebitNudgeModal';
-import type { CartItem, CartState, CartActions, AddToCartPayload } from './src/types/cart';
+import type { CartItem, CartState, CartActions, AddToCartPayload, UpdateItemPayload } from './src/types/cart';
 import type { C2Variant } from './src/components/payment/PaymentFragment';
 import type { VariantProduct } from './src/types/variants';
 
@@ -141,6 +141,16 @@ export default function App() {
     });
   }, []);
 
+  const updateItem = useCallback((id: string, updates: UpdateItemPayload) => {
+    setCartItems(prev => {
+      const idx = prev.findIndex(i => i.id === id);
+      if (idx < 0) return prev;
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...updates };
+      return next;
+    });
+  }, []);
+
   const deleteItem = useCallback((id: string) => {
     setCartItems(prev => {
       const next = prev.filter(i => i.id !== id);
@@ -155,8 +165,8 @@ export default function App() {
   }, []);
 
   const cartActions: CartActions = useMemo(() => ({
-    addOrIncrement, changeQty, deleteItem, setSelectedId, clearCart,
-  }), [addOrIncrement, changeQty, deleteItem, clearCart]);
+    addOrIncrement, updateItem, changeQty, deleteItem, setSelectedId, clearCart,
+  }), [addOrIncrement, updateItem, changeQty, deleteItem, clearCart]);
 
   // ── Payment handlers ──────────────────────────────────────────────────────
   const handleCharge   = useCallback(() => setPaymentActive(true),  []);

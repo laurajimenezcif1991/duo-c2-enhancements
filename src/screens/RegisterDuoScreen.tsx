@@ -22,7 +22,7 @@ import { RegisterBottomBar } from '../components/register/RegisterBottomBar';
 import { C1PaymentPanel }   from '../components/payment/PaymentFragment';
 import { ItemDetailDrawer }   from '../components/modals/ItemDetailDrawer';
 import { OrderDetailsScreen } from './OrderDetailsScreen';
-import type { CartState, CartActions, CartAddOn, CartAppliedModifier } from '../types/cart';
+import type { CartItem, CartState, CartActions, CartAddOn, CartAppliedModifier, UpdateItemPayload } from '../types/cart';
 import type { VariantProduct, ProductVariant } from '../types/variants';
 import { SAMPLE_PRODUCTS, VARIANT_PRODUCTS } from './sampleData';
 
@@ -58,9 +58,11 @@ export function RegisterDuoScreen({
 }: RegisterDuoScreenProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
 
-  const [tab,                setTab]               = useState<RegisterTab>('products');
-  const [taxEnabled,         setTax]               = useState(true);
+  const [tab,                 setTab]                = useState<RegisterTab>('products');
+  const [taxEnabled,          setTax]                = useState(true);
   const [orderDetailsVisible, setOrderDetailsVisible] = useState(false);
+  /** Cart item currently open in the edit modifier drawer */
+  const [editingCartItem,     setEditingCartItem]    = useState<CartItem | null>(null);
 
   // ── Product tap ───────────────────────────────────────────────────────────
   const handleProductPress = useCallback((product: GridProduct) => {
@@ -83,16 +85,16 @@ export function RegisterDuoScreen({
     cartActions.addOrIncrement({ id, name: product.name, priceLabel: product.price, priceValue });
   }, [cartActions, onOpenItemDetail]);
 
-  // ── Edit item from Order Details → close order screen, open item drawer ───
-  const handleEditOrderItem = useCallback((item: import('../types/cart').CartItem) => {
-    const variantProduct = Object.values(VARIANT_PRODUCTS).find(p =>
-      p.variants.some(v => v.id === item.id)
-    );
-    if (variantProduct) {
-      setOrderDetailsVisible(false);
-      onOpenItemDetail?.(variantProduct);
-    }
-  }, [onOpenItemDetail]);
+  // ── Open the edit modifier drawer for an existing cart item ──────────────
+  const openEditDrawer = useCallback((item: CartItem) => {
+    setOrderDetailsVisible(false); // close order details if open
+    setEditingCartItem(item);
+  }, []);
+
+  // Convenience handler wired from OrderDetails onEditItem
+  const handleEditOrderItem = useCallback((item: CartItem) => {
+    openEditDrawer(item);
+  }, [openEditDrawer]);
 
   // ── "Add to order" confirmed inside drawer → add to cart, close drawer ────
   const handleAddToOrder = useCallback((
@@ -161,7 +163,7 @@ export function RegisterDuoScreen({
         onItemIncrement={handleIncrement}
         onItemDecrement={handleDecrement}
         onItemDelete={handleDelete}
-        onItemEdit={() => { /* future */ }}
+        onItemEdit={() => { if (selectedCartItem) openEditDrawer(selectedCartItem); }}
       />
 
       {/* ── Content area: swaps between register grid and order details ───── */}
@@ -215,14 +217,36 @@ export function RegisterDuoScreen({
         onCancel={onPaymentCancel}
       />
 
-      {/* Item detail drawer — variant list → modifier form in-place */}
-      <ItemDetailDrawer
-        visible={itemDetailProduct !== null}
-        product={itemDetailProduct}
-        onClose={onCloseItemDetail ?? (() => {})}
-        onAddToOrder={handleAddToOrder}
-        dark={dark}
-      />
+      {/* Item detail drawer — add mode (variant selection) OR edit mode (modifier editing) */}
+      {(() => {
+        const isEditMode = editingCartItem !== null;
+        // In edit mode: find the variant product and variant for this cart item
+        const editVariantProduct = isEditMode
+          ? (Object.values(VARIANT_PRODUCTS).find(p => p.variants.some(v => v.id === editingCartItem!.id)) ?? null)
+          : null;
+        const editVariant = isEditMode && editVariantProduct
+          ? (editVariantProduct.variants.find(v => v.id === editingCartItem!.id) ?? null)
+          : null;
+
+        return (
+          <ItemDetailDrawer
+            visible={itemDetailProduct !== null || isEditMode}
+            product={isEditMode ? editVariantProduct : itemDetailProduct}
+            onClose={() => {
+              setEditingCartItem(null);
+              onCloseItemDetail?.();
+            }}
+            onAddToOrder={handleAddToOrder}
+            editCartItem={editingCartItem}
+            editVariant={editVariant}
+            onUpdateItem={(id, updates) => {
+              cartActions.updateItem(id, updates);
+              setEditingCartItem(null);
+            }}
+            dark={dark}
+          />
+        );
+      })()}
     </View>
   );
 }

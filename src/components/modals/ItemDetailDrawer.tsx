@@ -88,7 +88,15 @@ export type ItemDetailDrawerProps = {
     discount: import('../../types/cart').CartAppliedModifier | null,
     fee:      import('../../types/cart').CartAppliedModifier | null,
   ) => void;
-  dark?:        boolean;
+  /**
+   * When set the drawer opens directly in modifier/edit view for an existing
+   * cart item — no variant selection, button says "Update".
+   */
+  editCartItem?:  import('../../types/cart').CartItem | null;
+  /** Pre-selected variant matching editCartItem.id (null for non-variant items) */
+  editVariant?:   ProductVariant | null;
+  onUpdateItem?:  (id: string, updates: import('../../types/cart').UpdateItemPayload) => void;
+  dark?:          boolean;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -98,6 +106,9 @@ export function ItemDetailDrawer({
   product,
   onClose,
   onAddToOrder,
+  editCartItem  = null,
+  editVariant   = null,
+  onUpdateItem,
   dark = false,
 }: ItemDetailDrawerProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
@@ -122,17 +133,23 @@ export function ItemDetailDrawer({
   }, [visible, slideY, scrimRef]);
 
   // ── Navigation state ──────────────────────────────────────────────────────
-  const [view,       setView]       = useState<DrawerView>('variants');
-  const [modVariant, setModVariant] = useState<ProductVariant | null>(null);
+  const editMode = !!editCartItem;
+
+  const [view,       setView]       = useState<DrawerView>(editMode ? 'modifier' : 'variants');
+  const [modVariant, setModVariant] = useState<ProductVariant | null>(editVariant);
 
   // Modifier form
   const [checkSelections, setCheckSelections] = useState<Record<string, Set<string>>>({});
   const [radioSelections, setRadioSelections] = useState<Record<string, string>>({});
-  const [quantity,        setQuantity]        = useState(1);
-  const [note,            setNote]            = useState('');
+  const [quantity,        setQuantity]        = useState(editCartItem?.quantity ?? 1);
+  const [note,            setNote]            = useState(editCartItem?.note ?? '');
 
-  // Applied discount (shown in Discount row of modifier)
-  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null);
+  // Applied discount
+  const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(
+    editCartItem?.discount
+      ? { type: editCartItem.discount.type, value: editCartItem.discount.value, label: editCartItem.discount.label, postTax: editCartItem.discount.postTax }
+      : null
+  );
 
   // Discount form
   const [discountPreset,   setDiscountPreset]   = useState<string | null>(null);
@@ -141,7 +158,11 @@ export function ItemDetailDrawer({
   const [discountAmount,   setDiscountAmount]   = useState('');
 
   // Applied fee
-  const [appliedFee, setAppliedFee] = useState<AppliedDiscount | null>(null);
+  const [appliedFee, setAppliedFee] = useState<AppliedDiscount | null>(
+    editCartItem?.fee
+      ? { type: editCartItem.fee.type, value: editCartItem.fee.value, label: editCartItem.fee.label, postTax: editCartItem.fee.postTax }
+      : null
+  );
 
   // Fee form
   const [feePreset,   setFeePreset]   = useState<string | null>(null);
@@ -149,14 +170,39 @@ export function ItemDetailDrawer({
   const [feeType,     setFeeType]     = useState<'$' | '%'>('%');
   const [feeAmount,   setFeeAmount]   = useState('');
 
-  // Reset all when drawer closes
+  // When a new editCartItem arrives (drawer re-opens for a different item), reset state
+  useEffect(() => {
+    if (editCartItem) {
+      setView('modifier');
+      setModVariant(editVariant ?? null);
+      setQuantity(editCartItem.quantity);
+      setNote(editCartItem.note ?? '');
+      setCheckSelections({});
+      setRadioSelections({});
+      setAppliedDiscount(
+        editCartItem.discount
+          ? { type: editCartItem.discount.type, value: editCartItem.discount.value, label: editCartItem.discount.label, postTax: editCartItem.discount.postTax }
+          : null
+      );
+      setAppliedFee(
+        editCartItem.fee
+          ? { type: editCartItem.fee.type, value: editCartItem.fee.value, label: editCartItem.fee.label, postTax: editCartItem.fee.postTax }
+          : null
+      );
+    }
+  }, [editCartItem?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset all when drawer closes (non-edit mode)
   useEffect(() => {
     if (!visible) {
-      setView('variants');
-      setModVariant(null);
-      setAppliedDiscount(null);
+      if (!editMode) {
+        setView('variants');
+        setModVariant(null);
+        setAppliedDiscount(null);
+        setAppliedFee(null);
+      }
     }
-  }, [visible]);
+  }, [visible, editMode]);
 
   // ── Navigation handlers ───────────────────────────────────────────────────
   const handleVariantPress = (variant: ProductVariant) => {
@@ -171,18 +217,21 @@ export function ItemDetailDrawer({
   };
 
   const handleBack = () => {
-    if (view === 'modifier') {
-      setView('variants');
-      setModVariant(null);
-    } else if (view === 'discount' || view === 'fee') {
+    if (view === 'discount' || view === 'fee') {
       setView('modifier');
+    } else if (view === 'modifier') {
+      if (editMode) {
+        // In edit mode, back button closes the drawer
+        onClose();
+      } else {
+        setView('variants');
+        setModVariant(null);
+      }
     }
   };
 
-  const handleAddToOrder = () => {
-    if (!modVariant) return;
-
-    // Build add-ons list from checkbox + radio selections
+  // Build the add-ons list from current checkbox + radio state
+  const buildAddOns = (): import('../../types/cart').CartAddOn[] => {
     const addOns: import('../../types/cart').CartAddOn[] = [];
     if (product?.modifierGroups) {
       for (const group of product.modifierGroups) {
@@ -200,12 +249,38 @@ export function ItemDetailDrawer({
         }
       }
     }
+    // In edit mode, preserve existing addOns for groups we didn't touch
+    if (editMode && editCartItem?.addOns && addOns.length === 0) {
+      return editCartItem.addOns;
+    }
+    return addOns;
+  };
+
+  const handleAddToOrder = () => {
+    if (editMode && editCartItem) {
+      // Update existing cart item
+      onUpdateItem?.(editCartItem.id, {
+        note:     note.trim() || undefined,
+        quantity,
+        addOns:   buildAddOns(),
+        discount: appliedDiscount
+          ? { label: appliedDiscount.label, value: appliedDiscount.value, type: appliedDiscount.type, postTax: appliedDiscount.postTax }
+          : null,
+        fee: appliedFee
+          ? { label: appliedFee.label, value: appliedFee.value, type: appliedFee.type, postTax: appliedFee.postTax }
+          : null,
+      });
+      onClose();
+      return;
+    }
+
+    if (!modVariant) return;
 
     onAddToOrder(
       modVariant,
       quantity,
       note.trim(),
-      addOns,
+      buildAddOns(),
       appliedDiscount
         ? { label: appliedDiscount.label, value: appliedDiscount.value, type: appliedDiscount.type, postTax: appliedDiscount.postTax }
         : null,
@@ -300,14 +375,21 @@ export function ItemDetailDrawer({
   let headerRightLabel = '';
   let headerRightAction: (() => void) | null = null;
 
-  if (isModifier && modVariant) {
-    headerLeft = `${product?.name} (${modVariant.color}, ${modVariant.size})`;
+  if (isModifier) {
+    // In edit mode use the cart item name; otherwise build from product + variant
+    headerLeft = editMode
+      ? (editCartItem?.name ?? '')
+      : modVariant
+        ? `${product?.name} (${modVariant.color}, ${modVariant.size})`
+        : (product?.name ?? '');
     headerRightLabel = 'Reset Modifier';
     headerRightAction = () => {
       setCheckSelections({});
       setRadioSelections({});
-      setQuantity(1);
+      setQuantity(editMode ? (editCartItem?.quantity ?? 1) : 1);
       setNote('');
+      setAppliedDiscount(null);
+      setAppliedFee(null);
     };
   } else if (isDiscount) {
     headerLeft = 'Discount';
@@ -496,8 +578,9 @@ export function ItemDetailDrawer({
               const hasCheckSel  = Object.values(checkSelections).some(set => set.size > 0);
               const hasRadioSel  = Object.values(radioSelections).some(v => !!v);
               const hasModGroups = (product?.modifierGroups?.length ?? 0) > 0;
-              // If no modifier groups exist, always enable; otherwise require at least one selection
-              const canAdd = !hasModGroups || hasCheckSel || hasRadioSel;
+              // In edit mode always enabled (quantity/discount/fee/note always changeable)
+              // In add mode require at least one modifier selection when groups exist
+              const canAdd = editMode || !hasModGroups || hasCheckSel || hasRadioSel;
               return (
                 <View style={[s.buttonBar, { borderTopColor: palette.border }]}>
                   <TouchableOpacity
@@ -505,7 +588,9 @@ export function ItemDetailDrawer({
                     style={[s.addBtn, { backgroundColor: canAdd ? '#111111' : palette.neutral }]}
                     activeOpacity={canAdd ? 0.85 : 1}
                   >
-                    <Text style={[s.addBtnLabel, { fontFamily: FontFamily.textMedium }]}>Add to order</Text>
+                    <Text style={[s.addBtnLabel, { fontFamily: FontFamily.textMedium }]}>
+                      {editMode ? 'Update' : 'Add to order'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               );
