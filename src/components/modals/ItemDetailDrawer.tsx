@@ -418,7 +418,11 @@ export function ItemDetailDrawer({
                       <TouchableOpacity
                         key={preset.id}
                         onPress={() => setDiscountPreset(isSelected ? null : preset.id)}
-                        style={[s.presetCard, { backgroundColor: palette.bgAccent }, isSelected && s.presetCardSelected]}
+                        style={[
+                          s.presetCard,
+                          { backgroundColor: isSelected ? TEAL_LITE : palette.bgAccent },
+                          isSelected && s.presetCardSelected,
+                        ]}
                         activeOpacity={0.8}
                       >
                         <Text style={[s.presetValue, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
@@ -448,24 +452,40 @@ export function ItemDetailDrawer({
                   <Text style={[s.toggleLabel, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
                     Tax after discount
                   </Text>
-                  <View style={[s.togglePill, { backgroundColor: taxAfterDiscount ? TEAL_LITE : palette.neutral }]}>
-                    <View style={[s.toggleThumb, taxAfterDiscount && s.toggleThumbOn]} />
+                  <View style={[
+                    s.togglePill,
+                    taxAfterDiscount
+                      ? { backgroundColor: TEAL_LITE, paddingLeft: 26, paddingRight: 6, borderWidth: 0 }
+                      : { backgroundColor: '#ffffff', paddingLeft: 6, paddingRight: 26, borderWidth: 2, borderColor: '#767676' },
+                  ]}>
+                    <View style={[s.toggleThumb, { backgroundColor: taxAfterDiscount ? '#ffffff' : '#767676' }]} />
                   </View>
                 </TouchableOpacity>
 
                 {/* Type selector + amount input */}
                 <View style={s.discInputRow}>
-                  <View style={[s.typeSelector, { borderColor: palette.contentTertiary }]}>
+                  {/* $ / % horizontal toggle */}
+                  <View style={s.typeSelector}>
                     <TouchableOpacity
                       onPress={() => setDiscountType('$')}
-                      style={[s.typeBtn, discountType === '$' && { backgroundColor: TEAL_DARK }]}
+                      style={[
+                        s.typeBtnLeft,
+                        discountType === '$'
+                          ? { backgroundColor: TEAL_DARK, borderColor: TEAL_DARK }
+                          : { backgroundColor: '#ffffff', borderColor: palette.contentTertiary },
+                      ]}
                       activeOpacity={0.8}
                     >
                       <Icon name="dollar" size={22} color={discountType === '$' ? '#ffffff' : palette.textPrimary} />
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => setDiscountType('%')}
-                      style={[s.typeBtn, discountType === '%' && { backgroundColor: TEAL_DARK }]}
+                      style={[
+                        s.typeBtnRight,
+                        discountType === '%'
+                          ? { backgroundColor: TEAL_DARK, borderColor: TEAL_DARK }
+                          : { backgroundColor: '#ffffff', borderColor: palette.contentTertiary },
+                      ]}
                       activeOpacity={0.8}
                     >
                       <Icon name="percent" size={22} color={discountType === '%' ? '#ffffff' : palette.textPrimary} />
@@ -503,7 +523,7 @@ export function ItemDetailDrawer({
                 return (
                   <TouchableOpacity
                     onPress={canConfirm ? handleDiscountConfirm : undefined}
-                    style={[s.confirmBtn, { backgroundColor: canConfirm ? TEAL_DARK : palette.neutral }]}
+                    style={[s.confirmBtn, { backgroundColor: canConfirm ? palette.bgBase : palette.neutral }]}
                     activeOpacity={canConfirm ? 0.85 : 1}
                   >
                     <Text style={[s.confirmBtnLabel, { fontFamily: FontFamily.textMedium }]}>Confirm</Text>
@@ -612,7 +632,7 @@ const s = StyleSheet.create({
   overlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'flex-end' },
   scrim:   { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.55)' },
   sheet: {
-    width: 600, maxHeight: C1_H - 40,
+    width: 600, height: C1_H - 40,
     borderTopLeftRadius: Radius.xl, borderTopRightRadius: Radius.xl,
     overflow: 'hidden',
   },
@@ -698,21 +718,31 @@ const s = StyleSheet.create({
     flex: 1, height: 120, borderRadius: Radius.md,
     alignItems: 'center', justifyContent: 'center', gap: Spacing[8],
   },
-  presetCardSelected: { borderWidth: 2, borderColor: TEAL_DARK },
+  presetCardSelected: { borderWidth: 2, borderColor: TEAL_DARK, borderRadius: Radius.md },
   presetValue: { fontSize: FontSize.headingSM, lineHeight: FontSize.headingSM * 1.2, textAlign: 'center' },
   presetLabel: { fontSize: FontSize.bodySM, lineHeight: FontSize.bodySM * 1.5, textAlign: 'center', paddingHorizontal: Spacing[4] },
 
   // Tax toggle
   toggleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: Radius.md, paddingHorizontal: Spacing[16], paddingVertical: Spacing[16] },
   toggleLabel: { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
-  togglePill: { width: 52, height: 32, borderRadius: Radius.full, paddingVertical: 6, paddingHorizontal: 6, justifyContent: 'center' },
-  toggleThumb: { width: 20, height: 20, borderRadius: Radius.full, backgroundColor: '#ffffff', alignSelf: 'flex-start' },
-  toggleThumbOn: { alignSelf: 'flex-end' },
+  // Pill sizing only — bg, padding, border are set dynamically per ON/OFF state
+  togglePill: { width: 52, height: 32, borderRadius: Radius.full, paddingVertical: 6, flexDirection: 'row', alignItems: 'center' },
+  toggleThumb: { width: 20, height: 20, borderRadius: Radius.full },
 
   // Type selector + input
   discInputRow: { flexDirection: 'row', gap: Spacing[8], alignItems: 'stretch' },
-  typeSelector: { width: 100, borderWidth: 1, borderRadius: Radius.sm, overflow: 'hidden', flexDirection: 'column' },
-  typeBtn: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: Spacing[12] },
+  // Horizontal $ / % toggle — each button owns its own border
+  typeSelector: { width: 160, height: 72, flexDirection: 'row' },
+  typeBtnLeft: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    borderTopLeftRadius: Radius.sm, borderBottomLeftRadius: Radius.sm,
+    borderWidth: 1,
+  },
+  typeBtnRight: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    borderTopRightRadius: Radius.sm, borderBottomRightRadius: Radius.sm,
+    borderWidth: 1, borderLeftWidth: 0,
+  },
   discInputWrap: { flex: 1, borderWidth: 1, borderRadius: Radius.sm, height: 72, paddingHorizontal: Spacing[16], justifyContent: 'center', gap: 4 },
   discInputFloatLabel: { fontSize: FontSize.bodyXS, lineHeight: FontSize.bodyXS * 1.5 },
   discInput: { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
