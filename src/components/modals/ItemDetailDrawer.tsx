@@ -57,9 +57,15 @@ const DISCOUNT_PRESETS = [
   { id: 'p3', value: '7%',  label: 'Seasonal'       },
 ];
 
+const FEE_PRESETS = [
+  { id: 'f1', value: '10%', label: 'Local Fee' },
+  { id: 'f2', value: '15%', label: 'GoDaddy'  },
+  { id: 'f3', value: '7%',  label: 'ALL TIME'  },
+];
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type DrawerView = 'variants' | 'modifier' | 'discount';
+type DrawerView = 'variants' | 'modifier' | 'discount' | 'fee';
 
 type AppliedDiscount = {
   type:    '$' | '%';
@@ -122,10 +128,19 @@ export function ItemDetailDrawer({
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null);
 
   // Discount form
-  const [discountPreset,     setDiscountPreset]     = useState<string | null>(null);
-  const [taxAfterDiscount,   setTaxAfterDiscount]   = useState(true);
-  const [discountType,       setDiscountType]       = useState<'$' | '%'>('%');
-  const [discountAmount,     setDiscountAmount]     = useState('');
+  const [discountPreset,   setDiscountPreset]   = useState<string | null>(null);
+  const [taxAfterDiscount, setTaxAfterDiscount] = useState(true);
+  const [discountType,     setDiscountType]     = useState<'$' | '%'>('%');
+  const [discountAmount,   setDiscountAmount]   = useState('');
+
+  // Applied fee
+  const [appliedFee, setAppliedFee] = useState<AppliedDiscount | null>(null);
+
+  // Fee form
+  const [feePreset,   setFeePreset]   = useState<string | null>(null);
+  const [taxAfterFee, setTaxAfterFee] = useState(true);
+  const [feeType,     setFeeType]     = useState<'$' | '%'>('%');
+  const [feeAmount,   setFeeAmount]   = useState('');
 
   // Reset all when drawer closes
   useEffect(() => {
@@ -152,7 +167,7 @@ export function ItemDetailDrawer({
     if (view === 'modifier') {
       setView('variants');
       setModVariant(null);
-    } else if (view === 'discount') {
+    } else if (view === 'discount' || view === 'fee') {
       setView('modifier');
     }
   };
@@ -206,9 +221,41 @@ export function ItemDetailDrawer({
 
   const handleRemoveDiscount = () => setAppliedDiscount(null);
 
+  // Fee handlers
+  const openFeeView = () => {
+    setFeePreset(null);
+    setFeeAmount('');
+    setFeeType('%');
+    setTaxAfterFee(true);
+    setView('fee');
+  };
+
+  const handleFeeReset = () => {
+    setFeePreset(null);
+    setFeeAmount('');
+    setFeeType('%');
+    setTaxAfterFee(true);
+  };
+
+  const handleFeeConfirm = () => {
+    if (feePreset) {
+      const preset = FEE_PRESETS.find(p => p.id === feePreset);
+      if (preset) {
+        setAppliedFee({ type: '%', value: preset.value, label: preset.label, postTax: taxAfterFee });
+      }
+    } else if (feeAmount) {
+      const formatted = feeType === '%' ? `${feeAmount}%` : `$${feeAmount}`;
+      setAppliedFee({ type: feeType, value: formatted, label: 'Custom', postTax: taxAfterFee });
+    }
+    setView('modifier');
+  };
+
+  const handleRemoveFee = () => setAppliedFee(null);
+
   // ── Derived ──────────────────────────────────────────────────────────────
   const isModifier = view === 'modifier';
   const isDiscount = view === 'discount';
+  const isFee      = view === 'fee';
 
   // ── Header title ─────────────────────────────────────────────────────────
   let headerLeft = '';
@@ -228,6 +275,10 @@ export function ItemDetailDrawer({
     headerLeft = 'Discount';
     headerRightLabel = 'Reset';
     headerRightAction = handleDiscountReset;
+  } else if (isFee) {
+    headerLeft = 'Fee';
+    headerRightLabel = 'Reset';
+    headerRightAction = handleFeeReset;
   }
 
   // ── Render ───────────────────────────────────────────────────────────────
@@ -242,7 +293,7 @@ export function ItemDetailDrawer({
         style={[s.sheet, { backgroundColor: palette.bgSurface }, { transform: [{ translateY: slideY }] }]}
       >
         {/* ── Header ───────────────────────────────────────────────────── */}
-        {!isModifier && !isDiscount ? (
+        {!isModifier && !isDiscount && !isFee ? (
 
           /* Variant list header */
           <View style={s.darkHeader}>
@@ -358,10 +409,25 @@ export function ItemDetailDrawer({
                   <Text style={[s.modSectionLabel, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
                     Fee
                   </Text>
-                  <TouchableOpacity activeOpacity={0.7}>
+                  <TouchableOpacity onPress={openFeeView} activeOpacity={0.7}>
                     <Text style={[s.addLink, { fontFamily: FontFamily.textMedium }]}>+ Add</Text>
                   </TouchableOpacity>
                 </View>
+                {appliedFee && (
+                  <View style={[s.appliedCard, { backgroundColor: palette.bgLight }]}>
+                    <Text style={[s.appliedCardLabel, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]} numberOfLines={1}>
+                      {appliedFee.label} {appliedFee.value}{appliedFee.postTax ? ' (Post Tax)' : ''}
+                    </Text>
+                    <View style={s.appliedCardRight}>
+                      <Text style={[s.appliedCardAmount, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+                        +{appliedFee.value}
+                      </Text>
+                      <TouchableOpacity onPress={handleRemoveFee} activeOpacity={0.7}>
+                        <Icon name="trash" size={20} color={palette.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
               </View>
 
               {/* Note */}
@@ -530,6 +596,138 @@ export function ItemDetailDrawer({
                 return (
                   <TouchableOpacity
                     onPress={canConfirm ? handleDiscountConfirm : undefined}
+                    style={[s.confirmBtn, { backgroundColor: canConfirm ? palette.bgBase : palette.neutral }]}
+                    activeOpacity={canConfirm ? 0.85 : 1}
+                  >
+                    <Text style={[s.confirmBtnLabel, { fontFamily: FontFamily.textMedium }]}>Confirm</Text>
+                  </TouchableOpacity>
+                );
+              })()}
+            </View>
+          </>
+        )}
+
+        {/* ── Fee view ─────────────────────────────────────────────────── */}
+        {view === 'fee' && (
+          <>
+            <ScrollView style={s.list} showsVerticalScrollIndicator={false} bounces={false} keyboardShouldPersistTaps="handled">
+
+              {/* Category and Product Level */}
+              <View style={[s.discSection, { borderBottomColor: palette.border }]}>
+                <Text style={[s.discSectionTitle, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+                  Category and Product Level
+                </Text>
+                <View style={s.presetRow}>
+                  {FEE_PRESETS.map(preset => {
+                    const isSelected = feePreset === preset.id;
+                    return (
+                      <TouchableOpacity
+                        key={preset.id}
+                        onPress={() => setFeePreset(isSelected ? null : preset.id)}
+                        style={[
+                          s.presetCard,
+                          { backgroundColor: isSelected ? TEAL : palette.bgAccent },
+                          isSelected && s.presetCardSelected,
+                        ]}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={[s.presetValue, { color: isSelected ? '#ffffff' : palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+                          {preset.value}
+                        </Text>
+                        <Text style={[s.presetLabel, { color: isSelected ? '#ffffff' : palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+                          {preset.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Custom */}
+              <View style={s.discSection}>
+                <Text style={[s.discSectionTitle, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+                  Custom
+                </Text>
+
+                {/* Tax after fee toggle */}
+                <TouchableOpacity
+                  onPress={() => setTaxAfterFee(t => !t)}
+                  style={[s.toggleRow, { backgroundColor: palette.bgLight }]}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[s.toggleLabel, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+                    Tax after fee
+                  </Text>
+                  <View style={[
+                    s.togglePill,
+                    taxAfterFee
+                      ? { backgroundColor: TEAL_LITE, paddingLeft: 26, paddingRight: 6, borderWidth: 0 }
+                      : { backgroundColor: '#ffffff', paddingLeft: 6, paddingRight: 26, borderWidth: 2, borderColor: '#767676' },
+                  ]}>
+                    <View style={[s.toggleThumb, { backgroundColor: taxAfterFee ? '#ffffff' : '#767676' }]} />
+                  </View>
+                </TouchableOpacity>
+
+                {/* Type selector + amount input */}
+                <View style={s.discInputRow}>
+                  <View style={s.typeSelector}>
+                    <TouchableOpacity
+                      onPress={() => setFeeType('$')}
+                      style={[
+                        s.typeBtnLeft,
+                        feeType === '$'
+                          ? { backgroundColor: TEAL_DARK, borderColor: TEAL_DARK }
+                          : { backgroundColor: '#ffffff', borderColor: palette.contentTertiary },
+                      ]}
+                      activeOpacity={0.8}
+                    >
+                      <Icon name="dollar" size={22} color={feeType === '$' ? '#ffffff' : palette.textPrimary} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => setFeeType('%')}
+                      style={[
+                        s.typeBtnRight,
+                        feeType === '%'
+                          ? { backgroundColor: TEAL_DARK, borderColor: TEAL_DARK }
+                          : { backgroundColor: '#ffffff', borderColor: palette.contentTertiary },
+                      ]}
+                      activeOpacity={0.8}
+                    >
+                      <Icon name="percent" size={22} color={feeType === '%' ? '#ffffff' : palette.textPrimary} />
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={[s.discInputWrap, { borderColor: palette.contentTertiary }]}>
+                    <Text style={[s.discInputFloatLabel, { color: palette.textSecondary, fontFamily: FontFamily.textRegular }]}>
+                      Enter fee amount
+                    </Text>
+                    <TextInput
+                      style={[s.discInput, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}
+                      value={feeAmount}
+                      onChangeText={v => setFeeAmount(v.replace(/[^0-9.]/g, ''))}
+                      keyboardType="numeric"
+                      placeholder={feeType === '%' ? '0%' : '0.00'}
+                      placeholderTextColor={palette.textPrimary}
+                    />
+                  </View>
+                </View>
+              </View>
+
+              <View style={{ height: Spacing[32] }} />
+            </ScrollView>
+
+            {/* Cancel + Confirm */}
+            <View style={[s.twoButtonBar, { borderTopColor: palette.border }]}>
+              <TouchableOpacity onPress={() => setView('modifier')} style={[s.cancelBtn, { borderColor: palette.contentTertiary }]} activeOpacity={0.8}>
+                <Text style={[s.cancelBtnLabel, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              {(() => {
+                const canConfirm = !!(feePreset || feeAmount.trim());
+                return (
+                  <TouchableOpacity
+                    onPress={canConfirm ? handleFeeConfirm : undefined}
                     style={[s.confirmBtn, { backgroundColor: canConfirm ? palette.bgBase : palette.neutral }]}
                     activeOpacity={canConfirm ? 0.85 : 1}
                   >
