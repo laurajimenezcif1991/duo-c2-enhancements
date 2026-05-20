@@ -164,6 +164,8 @@ const styles = StyleSheet.create({
   },
   img: {
     ...StyleSheet.absoluteFillObject,
+    width:  '100%',
+    height: '100%',
   },
   labelText: {
     fontFamily:  FontFamily.textBold,
