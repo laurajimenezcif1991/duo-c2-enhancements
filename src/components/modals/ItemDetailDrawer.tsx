@@ -28,7 +28,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { ColorTokens }          from '../../theme/colors';
@@ -160,10 +159,13 @@ function VariantRow({ productName, variant, palette, onPress }: VariantRowProps)
   const stockColor = isOos ? palette.neutral        : palette.textSecondary;
 
   return (
-    <TouchableOpacity
-      activeOpacity={isOos ? 1 : 0.7}
-      onPress={onPress}
-      style={[s.row, { borderBottomColor: palette.border }]}
+    <Pressable
+      onPress={isOos ? undefined : onPress}
+      style={({ pressed }) => [
+        s.row,
+        { borderBottomColor: palette.border },
+        pressed && !isOos && { backgroundColor: '#F6F6F6' },
+      ]}
     >
       {/* Thumbnail */}
       <View style={[s.thumb, { borderColor: palette.border }]}>
@@ -207,7 +209,7 @@ function VariantRow({ productName, variant, palette, onPress }: VariantRowProps)
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
