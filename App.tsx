@@ -21,10 +21,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Image,
-  ScrollView,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -175,39 +172,7 @@ export default function App() {
     <View style={s.root}>
       <View style={s.canvas}>
 
-        {/* ── Controls panel — top-left, outside device ────────────────────── */}
-        <View style={s.controlsPanel}>
-          <Text style={s.controlsLabel}>C1 bottom drawer</Text>
-          <TouchableOpacity
-            style={s.chip}
-            activeOpacity={0.75}
-            onPress={() => setDebitModal(true)}
-          >
-            <View style={s.chipDot} />
-            <Text style={s.chipText}>Encourage debit payments</Text>
-          </TouchableOpacity>
-
-          {paymentActive && (
-            <>
-              <View style={s.controlsDivider} />
-
-              <Text style={s.controlsLabel}>C2 PF Variants</Text>
-              {(['A', 'B', 'C'] as const).map(v => (
-                <TouchableOpacity
-                  key={v}
-                  style={[s.chip, c2Variant === v && s.chipActive]}
-                  onPress={() => setC2Variant(v)}
-                  activeOpacity={0.75}
-                >
-                  <View style={[s.chipDot, c2Variant === v ? s.chipDotActive : s.chipDotInactive]} />
-                  <Text style={[s.chipText, c2Variant === v ? s.chipTextActive : s.chipTextInactive]}>
-                    {`Variant ${v}`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </>
-          )}
-        </View>
+        {/* Controls panel hidden */}
 
         {/* ── Device — centered, scaled to fit viewport ─────────────────────── */}
         <View style={{ width: scaledW, height: scaledH }}>
