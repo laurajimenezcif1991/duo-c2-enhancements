@@ -20,7 +20,8 @@ import { ProductGrid, type GridProduct } from '../components/register/ProductGri
 import { RegisterActionBar } from '../components/register/RegisterActionBar';
 import { RegisterBottomBar } from '../components/register/RegisterBottomBar';
 import { C1PaymentPanel }   from '../components/payment/PaymentFragment';
-import { ItemDetailDrawer } from '../components/modals/ItemDetailDrawer';
+import { ItemDetailDrawer }   from '../components/modals/ItemDetailDrawer';
+import { ItemModifierDrawer }  from '../components/modals/ItemModifierDrawer';
 import type { CartState, CartActions } from '../types/cart';
 import type { VariantProduct, ProductVariant } from '../types/variants';
 import { SAMPLE_PRODUCTS, VARIANT_PRODUCTS } from './sampleData';
@@ -57,8 +58,9 @@ export function RegisterDuoScreen({
 }: RegisterDuoScreenProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
 
-  const [tab,        setTab]  = useState<RegisterTab>('products');
-  const [taxEnabled, setTax]  = useState(true);
+  const [tab,             setTab]  = useState<RegisterTab>('products');
+  const [taxEnabled,      setTax]  = useState(true);
+  const [modifierVariant, setModifierVariant] = useState<ProductVariant | null>(null);
 
   // ── Product tap ───────────────────────────────────────────────────────────
   const handleProductPress = useCallback((product: GridProduct) => {
@@ -81,16 +83,25 @@ export function RegisterDuoScreen({
     cartActions.addOrIncrement(id, product.name, product.price, priceValue);
   }, [cartActions, onOpenItemDetail]);
 
-  // ── Variant selected from drawer ──────────────────────────────────────────
+  // ── Variant row tapped → open modifier drawer (level 2) ──────────────────
   const handleVariantSelect = useCallback((variant: ProductVariant) => {
-    cartActions.addOrIncrement(
-      variant.id,
-      `${itemDetailProduct?.name} | ${variant.color} | ${variant.size}`,
-      variant.price,
-      variant.priceValue,
-    );
+    setModifierVariant(variant);
+  }, []);
+
+  // ── "Add to order" pressed in modifier drawer → add to cart, close all ────
+  const handleAddToOrder = useCallback((variant: ProductVariant, qty: number, _note: string) => {
+    const label = `${itemDetailProduct?.name} | ${variant.color} | ${variant.size}`;
+    for (let i = 0; i < qty; i++) {
+      cartActions.addOrIncrement(variant.id, label, variant.price, variant.priceValue);
+    }
+    setModifierVariant(null);
     onCloseItemDetail?.();
   }, [cartActions, itemDetailProduct, onCloseItemDetail]);
+
+  // ── Back arrow in modifier drawer → go back to variant list ───────────────
+  const handleModifierBack = useCallback(() => {
+    setModifierVariant(null);
+  }, []);
 
   // ── Top-bar qty controls ──────────────────────────────────────────────────
   const selectedCartItem = cart.items.find(i => i.id === cart.selectedId) ?? null;
@@ -172,6 +183,16 @@ export function RegisterDuoScreen({
         product={itemDetailProduct}
         onClose={onCloseItemDetail ?? (() => {})}
         onSelectVariant={handleVariantSelect}
+        dark={dark}
+      />
+
+      {/* Item modifier drawer — slides up on top when a variant row is tapped */}
+      <ItemModifierDrawer
+        visible={modifierVariant !== null}
+        variant={modifierVariant}
+        product={itemDetailProduct}
+        onBack={handleModifierBack}
+        onAddToOrder={handleAddToOrder}
         dark={dark}
       />
     </View>

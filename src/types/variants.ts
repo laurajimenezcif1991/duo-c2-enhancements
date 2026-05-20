@@ -20,10 +20,23 @@ export type ProductVariant = {
   imageSource:  ImageSourcePropType;
 };
 
+// ─── Modifier groups ──────────────────────────────────────────────────────────
+
+export type ModifierOption = {
+  id:    string;
+  label: string;
+  price: string;  // e.g. "+$0", "+$1"
+};
+
+export type ModifierGroup =
+  | { type: 'checkbox'; id: string; title: string; hint: string; options: ModifierOption[] }
+  | { type: 'radio';    id: string; title: string; hint: string; options: ModifierOption[] };
+
 export type VariantProduct = {
-  id:           string;
-  name:         string;
-  imageSource:  ImageSourcePropType;
-  hasVariants:  true;
-  variants:     ProductVariant[];
+  id:              string;
+  name:            string;
+  imageSource:     ImageSourcePropType;
+  hasVariants:     true;
+  variants:        ProductVariant[];
+  modifierGroups?: ModifierGroup[];
 };

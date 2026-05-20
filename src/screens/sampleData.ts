@@ -237,5 +237,29 @@ export const VARIANT_PRODUCTS: Record<string, VariantProduct> = {
     imageSource: imgPolosMain,
     hasVariants: true,
     variants:    POLO_VARIANTS,
+    modifierGroups: [
+      {
+        type:    'checkbox',
+        id:      'gift-box',
+        title:   'Gift Box',
+        hint:    'Select one or more options',
+        options: [
+          { id: 'free',   label: 'Free of cost', price: '+$0' },
+          { id: 'glossy', label: 'Glossy',        price: '+$1' },
+          { id: 'matte',  label: 'Matte',          price: '+$2' },
+        ],
+      },
+      {
+        type:    'radio',
+        id:      'sticker',
+        title:   'Sticker',
+        hint:    'Select one option',
+        options: [
+          { id: 'marvel', label: 'Marvel', price: '+$1' },
+          { id: 'dc',     label: 'DC',     price: '+$2' },
+          { id: 'gd',     label: 'GD',     price: '+$3' },
+        ],
+      },
+    ],
   },
 };
