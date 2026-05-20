@@ -9,7 +9,7 @@ import type { ProductVariant, VariantProduct } from '../types/variants';
 
 // ─── Local mock images (assets/mock-items/) ───────────────────────────────────
 const img0  = require('../../assets/mock-items/image.png');
-const img1  = require('../../assets/mock-items/Thumbnail.png');   // Polo T-Shirt (Blue — main card + blue variants)
+const img1  = require('../../assets/mock-items/polos.png');        // Polo T-Shirt (main card)
 const img2  = require('../../assets/mock-items/image-2.png');
 const img3  = require('../../assets/mock-items/image-3.png');
 const img4  = require('../../assets/mock-items/image-4.png');
@@ -228,11 +228,13 @@ const POLO_VARIANTS: ProductVariant[] = [
   { id: 'p3-grn-xl',  color: 'Green', size: 'XL', price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloGreen },
 ];
 
+const imgPolosMain = require('../../assets/mock-items/polos.png');
+
 export const VARIANT_PRODUCTS: Record<string, VariantProduct> = {
   p3: {
     id:          'p3',
     name:        'Polo T-Shirt',
-    imageSource: img1,
+    imageSource: imgPolosMain,
     hasVariants: true,
     variants:    POLO_VARIANTS,
   },
