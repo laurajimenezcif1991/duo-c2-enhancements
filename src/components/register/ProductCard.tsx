@@ -121,13 +121,9 @@ export function ProductCard({
           {name}
         </Text>
 
-        {seeAll ? (
-          <Text style={[styles.seeAll, { color: palette.contentPrimary, fontFamily: FontFamily.textMedium, fontSize: FontSize.bodyXS }]}>
+        {seeAll || hasVariants ? (
+          <Text style={[styles.seeAll, { color: palette.textPrimary, fontFamily: FontFamily.textRegular, fontSize: FontSize.bodySM }]}>
             See All
-          </Text>
-        ) : hasVariants ? (
-          <Text style={[styles.seeAll, { color: palette.contentPrimary, fontFamily: FontFamily.textMedium, fontSize: FontSize.bodyXS }]}>
-            Choose variant
           </Text>
         ) : (
           <View style={styles.priceRow}>
