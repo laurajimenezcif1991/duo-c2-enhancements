@@ -30,7 +30,6 @@ import {
 import { C2PaymentPrompt } from '../components/payment/PaymentFragment';
 import type { CartState } from '../types/cart';
 import type { C2Variant } from '../components/payment/PaymentFragment';
-import type { VariantProduct } from '../types/variants';
 import { FontFamily, FontSize } from '../theme/typography';
 
 // ─── Local assets ─────────────────────────────────────────────────────────────
@@ -55,8 +54,6 @@ type RegisterDuoC2ScreenProps = {
   c2Variant?:         C2Variant;
   onPaymentComplete?: (method: string) => void;
   onPaymentCancel?:   () => void;
-  /** When set, C2 shows an item preview while the merchant browses variants on C1 */
-  itemDetailProduct?: VariantProduct | null;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -68,7 +65,6 @@ export function RegisterDuoC2Screen({
   c2Variant         = 'A',
   onPaymentComplete,
   onPaymentCancel,
-  itemDetailProduct = null,
 }: RegisterDuoC2ScreenProps) {
 
   // ── PAYMENT state ────────────────────────────────────────────────────────
@@ -80,42 +76,6 @@ export function RegisterDuoC2Screen({
           onComplete={onPaymentComplete}
           variant={c2Variant}
         />
-      </View>
-    );
-  }
-
-  // ── ITEM DETAIL state ────────────────────────────────────────────────────
-  if (itemDetailProduct) {
-    return (
-      <View style={s.fill}>
-        <Image source={BG_IMAGE} style={s.background} resizeMode="cover" />
-
-        {/* Frosted overlay */}
-        <View style={s.detailOverlay}>
-          {/* Product image */}
-          <View style={s.detailImageWrap}>
-            <Image
-              source={itemDetailProduct.imageSource}
-              style={s.detailImage}
-              resizeMode="contain"
-            />
-          </View>
-
-          {/* Product name */}
-          <Text style={s.detailName} numberOfLines={2}>
-            {itemDetailProduct.name}
-          </Text>
-
-          {/* Variant prompt */}
-          <Text style={s.detailPrompt}>
-            Choose your variant
-          </Text>
-
-          {/* Price */}
-          <Text style={s.detailPrice}>
-            {itemDetailProduct.variants[0]?.price ?? ''}
-          </Text>
-        </View>
       </View>
     );
   }
@@ -273,53 +233,4 @@ const s = StyleSheet.create({
     textAlign:  'right',
   },
 
-  // ── Item detail preview ───────────────────────────────────────────────────
-  detailOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems:     'center',
-    justifyContent: 'center',
-    gap:            8,
-    paddingHorizontal: 32,
-    paddingVertical:   24,
-    backgroundColor: 'rgba(0,0,0,0.30)',
-  },
-
-  detailImageWrap: {
-    width:           180,
-    height:          180,
-    borderRadius:    12,
-    overflow:        'hidden',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    marginBottom:    4,
-  },
-
-  detailImage: {
-    width:  '100%',
-    height: '100%',
-  },
-
-  detailName: {
-    fontFamily: FontFamily.displayMedium,
-    fontSize:   28,
-    lineHeight: 34,
-    color:      '#ffffff',
-    textAlign:  'center',
-  },
-
-  detailPrompt: {
-    fontFamily: FontFamily.textRegular,
-    fontSize:   18,
-    lineHeight: 24,
-    color:      'rgba(255,255,255,0.75)',
-    textAlign:  'center',
-  },
-
-  detailPrice: {
-    fontFamily: FontFamily.textMedium,
-    fontSize:   24,
-    lineHeight: 30,
-    color:      '#ffffff',
-    textAlign:  'center',
-    marginTop:  4,
-  },
 });

@@ -9,7 +9,7 @@ import type { ProductVariant, VariantProduct } from '../types/variants';
 
 // ─── Local mock images (assets/mock-items/) ───────────────────────────────────
 const img0  = require('../../assets/mock-items/image.png');
-const img1  = require('../../assets/mock-items/image-1.png');
+const img1  = require('../../assets/mock-items/Thumbnail.png');   // Polo T-Shirt (Blue — main card + blue variants)
 const img2  = require('../../assets/mock-items/image-2.png');
 const img3  = require('../../assets/mock-items/image-3.png');
 const img4  = require('../../assets/mock-items/image-4.png');
@@ -200,26 +200,32 @@ export const SAMPLE_PRODUCTS: (ProductCardProps & { id: string })[] = [
   },
 ];
 
+// ─── Polo T-Shirt variant images (exported from Figma assets/mock-items) ─────
+const imgPoloBlue  = require('../../assets/mock-items/Thumbnail.png');    // Blue polo
+const imgPoloOos   = require('../../assets/mock-items/Thumbnail-1.png');  // Gray/OOS polo
+const imgPoloGreen = require('../../assets/mock-items/Thumbnail-2.png');  // Green polo
+const imgPoloRed   = require('../../assets/mock-items/polo-red.png');     // Red polo
+
 // ─── Polo T-Shirt variants (p3) ───────────────────────────────────────────────
 // Colors: Blue · Red · Green  |  Sizes: S · M · L · XL
 // Figma: Register-App-2025 · node 6539:116671 (Product List View Pattern)
 
 const POLO_VARIANTS: ProductVariant[] = [
   // ── Blue ──────────────────────────────────────────────────────────────────
-  { id: 'p3-blue-s',  color: 'Blue',  size: 'S',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-blue-m',  color: 'Blue',  size: 'M',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-blue-l',  color: 'Blue',  size: 'L',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-blue-xl', color: 'Blue',  size: 'XL', price: '$19.99', priceValue: 19.99, stock:  0, status: 'out-of-stock', imageSource: img1 },
+  { id: 'p3-blue-s',  color: 'Blue',  size: 'S',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloBlue },
+  { id: 'p3-blue-m',  color: 'Blue',  size: 'M',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloBlue },
+  { id: 'p3-blue-l',  color: 'Blue',  size: 'L',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloBlue },
+  { id: 'p3-blue-xl', color: 'Blue',  size: 'XL', price: '$19.99', priceValue: 19.99, stock:  0, status: 'out-of-stock', imageSource: imgPoloOos  },
   // ── Red ───────────────────────────────────────────────────────────────────
-  { id: 'p3-red-s',   color: 'Red',   size: 'S',  price: '$19.99', priceValue: 19.99, stock:  5, status: 'low-in-stock', imageSource: img1 },
-  { id: 'p3-red-m',   color: 'Red',   size: 'M',  price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-red-l',   color: 'Red',   size: 'L',  price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-red-xl',  color: 'Red',   size: 'XL', price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-red-s',   color: 'Red',   size: 'S',  price: '$19.99', priceValue: 19.99, stock:  5, status: 'low-in-stock', imageSource: imgPoloRed  },
+  { id: 'p3-red-m',   color: 'Red',   size: 'M',  price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: imgPoloRed  },
+  { id: 'p3-red-l',   color: 'Red',   size: 'L',  price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: imgPoloRed  },
+  { id: 'p3-red-xl',  color: 'Red',   size: 'XL', price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: imgPoloRed  },
   // ── Green ─────────────────────────────────────────────────────────────────
-  { id: 'p3-grn-s',   color: 'Green', size: 'S',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-grn-m',   color: 'Green', size: 'M',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-grn-l',   color: 'Green', size: 'L',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
-  { id: 'p3-grn-xl',  color: 'Green', size: 'XL', price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-grn-s',   color: 'Green', size: 'S',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloGreen },
+  { id: 'p3-grn-m',   color: 'Green', size: 'M',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloGreen },
+  { id: 'p3-grn-l',   color: 'Green', size: 'L',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloGreen },
+  { id: 'p3-grn-xl',  color: 'Green', size: 'XL', price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: imgPoloGreen },
 ];
 
 export const VARIANT_PRODUCTS: Record<string, VariantProduct> = {

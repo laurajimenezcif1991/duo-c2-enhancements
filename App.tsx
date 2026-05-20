@@ -194,7 +194,6 @@ export default function App() {
                 c2Variant={c2Variant}
                 onPaymentComplete={handleComplete}
                 onPaymentCancel={handleCancel}
-                itemDetailProduct={itemDetailProduct}
               />
             </View>
 
