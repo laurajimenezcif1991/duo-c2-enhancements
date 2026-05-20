@@ -28,6 +28,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { ColorTokens }          from '../../theme/colors';
