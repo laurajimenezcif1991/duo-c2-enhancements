@@ -106,16 +106,16 @@ export default function App() {
 
   // ── Cart actions ──────────────────────────────────────────────────────────
   const addOrIncrement = useCallback((
-    id: string, name: string, priceLabel: string, priceValue: number,
+    id: string, name: string, priceLabel: string, priceValue: number, note?: string,
   ) => {
     setCartItems(prev => {
       const idx = prev.findIndex(i => i.id === id);
       if (idx >= 0) {
         const next = [...prev];
-        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1 };
+        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1, ...(note !== undefined && { note }) };
         return next;
       }
-      return [...prev, { id, name, priceLabel, priceValue, quantity: 1 }];
+      return [...prev, { id, name, priceLabel, priceValue, quantity: 1, note }];
     });
     setSelectedId(id);
   }, []);

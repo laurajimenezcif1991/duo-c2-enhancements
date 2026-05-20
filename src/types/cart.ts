@@ -10,6 +10,8 @@ export type CartItem = {
   /** Raw number for calculations */
   priceValue: number;
   quantity:   number;
+  /** Optional note added via the modifier form */
+  note?:      string;
 };
 
 export type CartState = {
@@ -24,7 +26,7 @@ export type CartState = {
 };
 
 export type CartActions = {
-  addOrIncrement: (id: string, name: string, priceLabel: string, priceValue: number) => void;
+  addOrIncrement: (id: string, name: string, priceLabel: string, priceValue: number, note?: string) => void;
   changeQty:      (id: string, delta: number) => void;
   deleteItem:     (id: string) => void;
   setSelectedId:  (id: string | null) => void;

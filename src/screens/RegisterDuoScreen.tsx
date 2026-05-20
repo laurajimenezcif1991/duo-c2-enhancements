@@ -21,6 +21,7 @@ import { RegisterActionBar } from '../components/register/RegisterActionBar';
 import { RegisterBottomBar } from '../components/register/RegisterBottomBar';
 import { C1PaymentPanel }   from '../components/payment/PaymentFragment';
 import { ItemDetailDrawer }   from '../components/modals/ItemDetailDrawer';
+import { OrderDetailsScreen } from './OrderDetailsScreen';
 import type { CartState, CartActions } from '../types/cart';
 import type { VariantProduct, ProductVariant } from '../types/variants';
 import { SAMPLE_PRODUCTS, VARIANT_PRODUCTS } from './sampleData';
@@ -57,8 +58,9 @@ export function RegisterDuoScreen({
 }: RegisterDuoScreenProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
 
-  const [tab,        setTab] = useState<RegisterTab>('products');
-  const [taxEnabled, setTax] = useState(true);
+  const [tab,                setTab]               = useState<RegisterTab>('products');
+  const [taxEnabled,         setTax]               = useState(true);
+  const [orderDetailsVisible, setOrderDetailsVisible] = useState(false);
 
   // ── Product tap ───────────────────────────────────────────────────────────
   const handleProductPress = useCallback((product: GridProduct) => {
@@ -82,10 +84,10 @@ export function RegisterDuoScreen({
   }, [cartActions, onOpenItemDetail]);
 
   // ── "Add to order" confirmed inside drawer → add to cart, close drawer ────
-  const handleAddToOrder = useCallback((variant: ProductVariant, qty: number, _note: string) => {
+  const handleAddToOrder = useCallback((variant: ProductVariant, qty: number, note: string) => {
     const label = `${itemDetailProduct?.name} | ${variant.color} | ${variant.size}`;
     for (let i = 0; i < qty; i++) {
-      cartActions.addOrIncrement(variant.id, label, variant.price, variant.priceValue);
+      cartActions.addOrIncrement(variant.id, label, variant.price, variant.priceValue, note || undefined);
     }
     onCloseItemDetail?.();
   }, [cartActions, itemDetailProduct, onCloseItemDetail]);
@@ -122,6 +124,7 @@ export function RegisterDuoScreen({
         dark={dark}
         showOrderBadge
         orderCount={cart.orderCount}
+        onOrderPress={() => setOrderDetailsVisible(true)}
         selectedItem={selectedItemInfo}
         onItemIncrement={handleIncrement}
         onItemDecrement={handleDecrement}
@@ -170,6 +173,19 @@ export function RegisterDuoScreen({
         product={itemDetailProduct}
         onClose={onCloseItemDetail ?? (() => {})}
         onAddToOrder={handleAddToOrder}
+        dark={dark}
+      />
+
+      {/* Order details — full-screen overlay, slides in when Order pill tapped */}
+      <OrderDetailsScreen
+        visible={orderDetailsVisible}
+        cart={cart}
+        cartActions={cartActions}
+        taxEnabled={taxEnabled}
+        onTaxToggle={() => setTax(t => !t)}
+        onClose={() => setOrderDetailsVisible(false)}
+        onCancel={() => setOrderDetailsVisible(false)}
+        onCharge={() => { setOrderDetailsVisible(false); onCharge?.(); }}
         dark={dark}
       />
     </View>
