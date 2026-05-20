@@ -2,6 +2,20 @@
  * Shared cart types — used by both C1 (merchant) and C2 (customer) screens.
  */
 
+/** A single modifier add-on selected from a checkbox/radio group */
+export type CartAddOn = {
+  label: string;   // e.g. "Free of cost"
+  price: string;   // e.g. "+$0"
+};
+
+/** A discount applied to an item (also reused for fees) */
+export type CartAppliedModifier = {
+  label:   string;   // e.g. "Godaddy"
+  value:   string;   // e.g. "10%"
+  type:    '$' | '%';
+  postTax: boolean;
+};
+
 export type CartItem = {
   id:         string;
   name:       string;
@@ -12,6 +26,12 @@ export type CartItem = {
   quantity:   number;
   /** Optional note added via the modifier form */
   note?:      string;
+  /** Modifier add-ons selected (checkboxes + radios) */
+  addOns?:    CartAddOn[];
+  /** Applied item-level discount */
+  discount?:  CartAppliedModifier | null;
+  /** Applied item-level fee */
+  fee?:       CartAppliedModifier | null;
 };
 
 export type CartState = {
@@ -25,8 +45,19 @@ export type CartState = {
   orderCount: number;
 };
 
+export type AddToCartPayload = {
+  id:         string;
+  name:       string;
+  priceLabel: string;
+  priceValue: number;
+  note?:      string;
+  addOns?:    CartAddOn[];
+  discount?:  CartAppliedModifier | null;
+  fee?:       CartAppliedModifier | null;
+};
+
 export type CartActions = {
-  addOrIncrement: (id: string, name: string, priceLabel: string, priceValue: number, note?: string) => void;
+  addOrIncrement: (payload: AddToCartPayload) => void;
   changeQty:      (id: string, delta: number) => void;
   deleteItem:     (id: string) => void;
   setSelectedId:  (id: string | null) => void;

@@ -22,7 +22,7 @@ import { RegisterBottomBar } from '../components/register/RegisterBottomBar';
 import { C1PaymentPanel }   from '../components/payment/PaymentFragment';
 import { ItemDetailDrawer }   from '../components/modals/ItemDetailDrawer';
 import { OrderDetailsScreen } from './OrderDetailsScreen';
-import type { CartState, CartActions } from '../types/cart';
+import type { CartState, CartActions, CartAddOn, CartAppliedModifier } from '../types/cart';
 import type { VariantProduct, ProductVariant } from '../types/variants';
 import { SAMPLE_PRODUCTS, VARIANT_PRODUCTS } from './sampleData';
 
@@ -80,7 +80,7 @@ export function RegisterDuoScreen({
     const id = String(product.id);
     const priceValue = parseFloat(product.price.replace(/[^0-9.]/g, ''));
     if (isNaN(priceValue)) return;
-    cartActions.addOrIncrement(id, product.name, product.price, priceValue);
+    cartActions.addOrIncrement({ id, name: product.name, priceLabel: product.price, priceValue });
   }, [cartActions, onOpenItemDetail]);
 
   // ── Edit item from Order Details → close order screen, open item drawer ───
@@ -95,10 +95,26 @@ export function RegisterDuoScreen({
   }, [onOpenItemDetail]);
 
   // ── "Add to order" confirmed inside drawer → add to cart, close drawer ────
-  const handleAddToOrder = useCallback((variant: ProductVariant, qty: number, note: string) => {
-    const label = `${itemDetailProduct?.name} | ${variant.color} | ${variant.size}`;
+  const handleAddToOrder = useCallback((
+    variant:  ProductVariant,
+    qty:      number,
+    note:     string,
+    addOns:   CartAddOn[],
+    discount: CartAppliedModifier | null,
+    fee:      CartAppliedModifier | null,
+  ) => {
+    const label = `${itemDetailProduct?.name} (${variant.color}, ${variant.size})`;
     for (let i = 0; i < qty; i++) {
-      cartActions.addOrIncrement(variant.id, label, variant.price, variant.priceValue, note || undefined);
+      cartActions.addOrIncrement({
+        id:         variant.id,
+        name:       label,
+        priceLabel: variant.price,
+        priceValue: variant.priceValue,
+        note:       note || undefined,
+        addOns:     addOns.length > 0 ? addOns : undefined,
+        discount:   discount ?? undefined,
+        fee:        fee ?? undefined,
+      });
     }
     onCloseItemDetail?.();
   }, [cartActions, itemDetailProduct, onCloseItemDetail]);

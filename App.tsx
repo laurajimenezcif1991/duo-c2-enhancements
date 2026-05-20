@@ -30,7 +30,7 @@ import { useFonts } from 'expo-font';
 import { RegisterDuoScreen }   from './src/screens/RegisterDuoScreen';
 import { RegisterDuoC2Screen } from './src/screens/RegisterDuoC2Screen';
 import { DebitNudgeModal }     from './src/components/modals/DebitNudgeModal';
-import type { CartItem, CartState, CartActions } from './src/types/cart';
+import type { CartItem, CartState, CartActions, AddToCartPayload } from './src/types/cart';
 import type { C2Variant } from './src/components/payment/PaymentFragment';
 import type { VariantProduct } from './src/types/variants';
 
@@ -105,17 +105,22 @@ export default function App() {
   }), [cartItems, selectedId, total]);
 
   // ── Cart actions ──────────────────────────────────────────────────────────
-  const addOrIncrement = useCallback((
-    id: string, name: string, priceLabel: string, priceValue: number, note?: string,
-  ) => {
+  const addOrIncrement = useCallback(({ id, name, priceLabel, priceValue, note, addOns, discount, fee }: AddToCartPayload) => {
     setCartItems(prev => {
       const idx = prev.findIndex(i => i.id === id);
       if (idx >= 0) {
         const next = [...prev];
-        next[idx] = { ...next[idx], quantity: next[idx].quantity + 1, ...(note !== undefined && { note }) };
+        next[idx] = {
+          ...next[idx],
+          quantity: next[idx].quantity + 1,
+          ...(note     !== undefined && { note }),
+          ...(addOns   !== undefined && { addOns }),
+          ...(discount !== undefined && { discount }),
+          ...(fee      !== undefined && { fee }),
+        };
         return next;
       }
-      return [...prev, { id, name, priceLabel, priceValue, quantity: 1, note }];
+      return [...prev, { id, name, priceLabel, priceValue, quantity: 1, note, addOns, discount, fee }];
     });
     setSelectedId(id);
   }, []);

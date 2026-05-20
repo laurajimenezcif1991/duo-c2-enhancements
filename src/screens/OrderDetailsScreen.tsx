@@ -33,7 +33,7 @@ import { ColorTokens }          from '../theme/colors';
 import { FontFamily, FontSize } from '../theme/typography';
 import { Radius, Spacing }      from '../theme/spacing';
 import { Icon }                 from '../components/ui/Icon';
-import type { CartItem, CartState, CartActions } from '../types/cart';
+import type { CartItem, CartState, CartActions, CartAddOn, CartAppliedModifier } from '../types/cart';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -208,7 +208,7 @@ function OrderItemRow({
 
   return (
     <View style={s.itemRow}>
-      {/* Product name + quantity descriptor + line total */}
+      {/* ── Product headline: name + qty×price + line total ─────────────── */}
       <View style={s.itemHeader}>
         <View style={s.itemNameRow}>
           <Text
@@ -226,14 +226,63 @@ function OrderItemRow({
         </Text>
       </View>
 
-      {/* Note if present */}
+      {/* ── Add-ons (checkbox/radio modifier selections) ─────────────────── */}
+      {item.addOns && item.addOns.length > 0 && (
+        <View style={s.addOnsBlock}>
+          {item.addOns.map((ao, i) => (
+            <View key={i} style={s.addOnRow}>
+              <Text style={[s.addOnBullet, { color: palette.textSecondary, fontFamily: FontFamily.textRegular }]}>
+                {'• '}
+              </Text>
+              <Text style={[s.addOnText, { color: palette.textSecondary, fontFamily: FontFamily.textRegular }]}>
+                {ao.label}
+              </Text>
+              <Text style={[s.addOnPrice, { color: palette.textSecondary, fontFamily: FontFamily.textRegular }]}>
+                {`  ${ao.price}`}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* ── Discount line ────────────────────────────────────────────────── */}
+      {item.discount && (
+        <View style={s.modifierLine}>
+          <Text
+            style={[s.modifierLineLabel, { color: TEAL_DARK, fontFamily: FontFamily.textMedium }]}
+            numberOfLines={1}
+          >
+            {`Discount (${item.discount.label} ${item.discount.value}${item.discount.postTax ? ', Post Tax' : ', Pre Tax'})`}
+          </Text>
+          <Text style={[s.modifierLineValue, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+            {`-${item.discount.value}`}
+          </Text>
+        </View>
+      )}
+
+      {/* ── Fee line ─────────────────────────────────────────────────────── */}
+      {item.fee && (
+        <View style={s.modifierLine}>
+          <Text
+            style={[s.modifierLineLabel, { color: TEAL_DARK, fontFamily: FontFamily.textMedium }]}
+            numberOfLines={1}
+          >
+            {`Fee (${item.fee.label} ${item.fee.value}${item.fee.postTax ? ', Post Tax' : ', Pre Tax'})`}
+          </Text>
+          <Text style={[s.modifierLineValue, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+            {`+${item.fee.value}`}
+          </Text>
+        </View>
+      )}
+
+      {/* ── Note ─────────────────────────────────────────────────────────── */}
       {!!item.note && (
         <Text style={[s.itemNote, { fontFamily: FontFamily.textMedium }]}>
           {`Note: ${item.note}`}
         </Text>
       )}
 
-      {/* Quantity stepper + actions */}
+      {/* ── Quantity stepper + edit + trash ──────────────────────────────── */}
       <View style={s.itemControls}>
         <View style={s.stepper}>
           <TouchableOpacity
@@ -318,6 +367,23 @@ const s = StyleSheet.create({
   itemQtyDesc: { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
   itemTotal: { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2, flexShrink: 0 },
   itemNote: { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2, color: '#DB1802' },
+
+  // Add-ons block
+  addOnsBlock: { gap: 2 },
+  addOnRow:    { flexDirection: 'row', alignItems: 'center' },
+  addOnBullet: { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
+  addOnText:   { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
+  addOnPrice:  { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
+
+  // Discount / Fee line
+  modifierLine: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    justifyContent: 'space-between',
+    gap:            Spacing[8],
+  },
+  modifierLineLabel: { flex: 1, fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2 },
+  modifierLineValue: { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5, flexShrink: 0 },
 
   // Controls row
   itemControls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

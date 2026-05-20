@@ -80,7 +80,14 @@ export type ItemDetailDrawerProps = {
   visible:      boolean;
   product:      VariantProduct | null;
   onClose:      () => void;
-  onAddToOrder: (variant: ProductVariant, qty: number, note: string) => void;
+  onAddToOrder: (
+    variant:  ProductVariant,
+    qty:      number,
+    note:     string,
+    addOns:   import('../../types/cart').CartAddOn[],
+    discount: import('../../types/cart').CartAppliedModifier | null,
+    fee:      import('../../types/cart').CartAppliedModifier | null,
+  ) => void;
   dark?:        boolean;
 };
 
@@ -174,7 +181,38 @@ export function ItemDetailDrawer({
 
   const handleAddToOrder = () => {
     if (!modVariant) return;
-    onAddToOrder(modVariant, quantity, note.trim());
+
+    // Build add-ons list from checkbox + radio selections
+    const addOns: import('../../types/cart').CartAddOn[] = [];
+    if (product?.modifierGroups) {
+      for (const group of product.modifierGroups) {
+        if (group.type === 'checkbox') {
+          const sel = checkSelections[group.id] ?? new Set<string>();
+          for (const opt of group.options) {
+            if (sel.has(opt.id)) addOns.push({ label: opt.label, price: opt.price });
+          }
+        } else {
+          const selId = radioSelections[group.id];
+          if (selId) {
+            const opt = group.options.find(o => o.id === selId);
+            if (opt) addOns.push({ label: opt.label, price: opt.price });
+          }
+        }
+      }
+    }
+
+    onAddToOrder(
+      modVariant,
+      quantity,
+      note.trim(),
+      addOns,
+      appliedDiscount
+        ? { label: appliedDiscount.label, value: appliedDiscount.value, type: appliedDiscount.type, postTax: appliedDiscount.postTax }
+        : null,
+      appliedFee
+        ? { label: appliedFee.label, value: appliedFee.value, type: appliedFee.type, postTax: appliedFee.postTax }
+        : null,
+    );
   };
 
   // Modifier helpers
