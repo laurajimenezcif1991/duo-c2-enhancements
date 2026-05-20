@@ -35,6 +35,7 @@ import { RegisterDuoC2Screen } from './src/screens/RegisterDuoC2Screen';
 import { DebitNudgeModal }     from './src/components/modals/DebitNudgeModal';
 import type { CartItem, CartState, CartActions } from './src/types/cart';
 import type { C2Variant } from './src/components/payment/PaymentFragment';
+import type { VariantProduct } from './src/types/variants';
 
 // ─── Fonts ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ export default function App() {
   const [paymentActive, setPaymentActive] = useState(false);
   const [debitModal,    setDebitModal]    = useState(false);
   const [c2Variant,     setC2Variant]     = useState<C2Variant>('A');
+  const [itemDetailProduct, setItemDetailProduct] = useState<VariantProduct | null>(null);
 
   // ── Shared cart state ─────────────────────────────────────────────────────
   const [cartItems,  setCartItems]  = useState<CartItem[]>([]);
@@ -161,6 +163,9 @@ export default function App() {
 
   const closeModal = useCallback(() => setDebitModal(false), []);
 
+  const handleOpenItemDetail  = useCallback((product: VariantProduct) => setItemDetailProduct(product), []);
+  const handleCloseItemDetail = useCallback(() => setItemDetailProduct(null), []);
+
   if (!fontsLoaded) return null;
 
   const scaledW = DEVICE_W * deviceScale;
@@ -224,6 +229,7 @@ export default function App() {
                 c2Variant={c2Variant}
                 onPaymentComplete={handleComplete}
                 onPaymentCancel={handleCancel}
+                itemDetailProduct={itemDetailProduct}
               />
             </View>
 
@@ -236,6 +242,9 @@ export default function App() {
                 cartActions={cartActions}
                 onCharge={handleCharge}
                 onPaymentCancel={handleCancel}
+                onOpenItemDetail={handleOpenItemDetail}
+                onCloseItemDetail={handleCloseItemDetail}
+                itemDetailProduct={itemDetailProduct}
               />
 
               <DebitNudgeModal

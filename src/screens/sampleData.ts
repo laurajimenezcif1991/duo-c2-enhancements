@@ -5,6 +5,7 @@
  * Photos use the 10 local mock-item images; label-only products use a solid color.
  */
 import { ProductCardProps } from '../components/register/ProductCard';
+import type { ProductVariant, VariantProduct } from '../types/variants';
 
 // ─── Local mock images (assets/mock-items/) ───────────────────────────────────
 const img0  = require('../../assets/mock-items/image.png');
@@ -39,12 +40,12 @@ export const SAMPLE_PRODUCTS: (ProductCardProps & { id: string })[] = [
     labelText:  'HAIRP',
   },
   {
-    id:         'p3',
-    name:       'Polo T-Shirt',
-    price:      '',
-    seeAll:     true,
-    status:     'in-stock',
+    id:          'p3',
+    name:        'Polo T-Shirt',
+    price:       '$19.99',
+    status:      'in-stock',
     imageSource: img1,
+    hasVariants: true,
   },
   {
     id:            'p4',
@@ -198,3 +199,35 @@ export const SAMPLE_PRODUCTS: (ProductCardProps & { id: string })[] = [
     imageSource:   img7,  // reuse closest match
   },
 ];
+
+// ─── Polo T-Shirt variants (p3) ───────────────────────────────────────────────
+// Colors: Blue · Red · Green  |  Sizes: S · M · L · XL
+// Figma: Register-App-2025 · node 6539:116671 (Product List View Pattern)
+
+const POLO_VARIANTS: ProductVariant[] = [
+  // ── Blue ──────────────────────────────────────────────────────────────────
+  { id: 'p3-blue-s',  color: 'Blue',  size: 'S',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-blue-m',  color: 'Blue',  size: 'M',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-blue-l',  color: 'Blue',  size: 'L',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-blue-xl', color: 'Blue',  size: 'XL', price: '$19.99', priceValue: 19.99, stock:  0, status: 'out-of-stock', imageSource: img1 },
+  // ── Red ───────────────────────────────────────────────────────────────────
+  { id: 'p3-red-s',   color: 'Red',   size: 'S',  price: '$19.99', priceValue: 19.99, stock:  5, status: 'low-in-stock', imageSource: img1 },
+  { id: 'p3-red-m',   color: 'Red',   size: 'M',  price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-red-l',   color: 'Red',   size: 'L',  price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-red-xl',  color: 'Red',   size: 'XL', price: '$19.99', priceValue: 19.99, stock: 40, status: 'in-stock',     imageSource: img1 },
+  // ── Green ─────────────────────────────────────────────────────────────────
+  { id: 'p3-grn-s',   color: 'Green', size: 'S',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-grn-m',   color: 'Green', size: 'M',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-grn-l',   color: 'Green', size: 'L',  price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+  { id: 'p3-grn-xl',  color: 'Green', size: 'XL', price: '$19.99', priceValue: 19.99, stock: 30, status: 'in-stock',     imageSource: img1 },
+];
+
+export const VARIANT_PRODUCTS: Record<string, VariantProduct> = {
+  p3: {
+    id:          'p3',
+    name:        'Polo T-Shirt',
+    imageSource: img1,
+    hasVariants: true,
+    variants:    POLO_VARIANTS,
+  },
+};

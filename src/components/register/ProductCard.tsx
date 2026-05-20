@@ -35,6 +35,8 @@ export type ProductCardProps = {
   labelColor?:   string;
   labelText?:    string;
   seeAll?:       boolean;
+  /** When true the card opens a variant-selection drawer instead of adding directly to cart */
+  hasVariants?:  boolean;
   status?:       'in-stock' | 'out-of-stock' | 'low-in-stock';
   onPress?:      () => void;
   cardWidth?:    number;
@@ -51,12 +53,13 @@ export function ProductCard({
   imageSource,
   labelColor,
   labelText,
-  seeAll    = false,
-  status    = 'in-stock',
+  seeAll       = false,
+  hasVariants  = false,
+  status       = 'in-stock',
   onPress,
-  cardWidth  = 140,
-  cardHeight = 172,
-  dark       = false,
+  cardWidth    = 140,
+  cardHeight   = 172,
+  dark         = false,
   style,
 }: ProductCardProps) {
   const palette  = dark ? ColorTokens.dark : ColorTokens.light;
@@ -121,6 +124,10 @@ export function ProductCard({
         {seeAll ? (
           <Text style={[styles.seeAll, { color: palette.contentPrimary, fontFamily: FontFamily.textMedium, fontSize: FontSize.bodyXS }]}>
             See All
+          </Text>
+        ) : hasVariants ? (
+          <Text style={[styles.seeAll, { color: palette.contentPrimary, fontFamily: FontFamily.textMedium, fontSize: FontSize.bodyXS }]}>
+            Choose variant
           </Text>
         ) : (
           <View style={styles.priceRow}>

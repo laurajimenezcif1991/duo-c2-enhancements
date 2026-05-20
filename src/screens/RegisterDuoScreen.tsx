@@ -20,43 +20,77 @@ import { ProductGrid, type GridProduct } from '../components/register/ProductGri
 import { RegisterActionBar } from '../components/register/RegisterActionBar';
 import { RegisterBottomBar } from '../components/register/RegisterBottomBar';
 import { C1PaymentPanel }   from '../components/payment/PaymentFragment';
+import { ItemDetailDrawer } from '../components/modals/ItemDetailDrawer';
 import type { CartState, CartActions } from '../types/cart';
-import { SAMPLE_PRODUCTS }   from './sampleData';
+import type { VariantProduct, ProductVariant } from '../types/variants';
+import { SAMPLE_PRODUCTS, VARIANT_PRODUCTS } from './sampleData';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 type RegisterDuoScreenProps = {
-  dark?:            boolean;
-  paymentActive?:   boolean;
-  cart:             CartState;
-  cartActions:      CartActions;
-  onCharge?:        () => void;
-  onPaymentCancel?: () => void;
+  dark?:              boolean;
+  paymentActive?:     boolean;
+  cart:               CartState;
+  cartActions:        CartActions;
+  onCharge?:          () => void;
+  onPaymentCancel?:   () => void;
+  /** Called when a product with variants is tapped — lifts state to App */
+  onOpenItemDetail?:  (product: VariantProduct) => void;
+  /** Called when the item detail drawer closes */
+  onCloseItemDetail?: () => void;
+  /** Currently open variant product (from App) */
+  itemDetailProduct?: VariantProduct | null;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function RegisterDuoScreen({
-  dark           = false,
-  paymentActive  = false,
+  dark             = false,
+  paymentActive    = false,
   cart,
   cartActions,
   onCharge,
   onPaymentCancel,
+  onOpenItemDetail,
+  onCloseItemDetail,
+  itemDetailProduct = null,
 }: RegisterDuoScreenProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
 
   const [tab,        setTab]  = useState<RegisterTab>('products');
   const [taxEnabled, setTax]  = useState(true);
 
-  // ── Product tap → add to shared cart ─────────────────────────────────────
+  // ── Product tap ───────────────────────────────────────────────────────────
   const handleProductPress = useCallback((product: GridProduct) => {
-    if (product.seeAll || product.status === 'out-of-stock' || !product.price) return;
+    if (product.status === 'out-of-stock') return;
+
+    // If this product has variants, open the detail drawer
+    if (product.hasVariants) {
+      const variantProduct = VARIANT_PRODUCTS[String(product.id)];
+      if (variantProduct) {
+        onOpenItemDetail?.(variantProduct);
+      }
+      return;
+    }
+
+    // Standard products: add directly to cart
+    if (product.seeAll || !product.price) return;
     const id = String(product.id);
     const priceValue = parseFloat(product.price.replace(/[^0-9.]/g, ''));
     if (isNaN(priceValue)) return;
     cartActions.addOrIncrement(id, product.name, product.price, priceValue);
-  }, [cartActions]);
+  }, [cartActions, onOpenItemDetail]);
+
+  // ── Variant selected from drawer ──────────────────────────────────────────
+  const handleVariantSelect = useCallback((variant: ProductVariant) => {
+    cartActions.addOrIncrement(
+      variant.id,
+      `${itemDetailProduct?.name} | ${variant.color} | ${variant.size}`,
+      variant.price,
+      variant.priceValue,
+    );
+    onCloseItemDetail?.();
+  }, [cartActions, itemDetailProduct, onCloseItemDetail]);
 
   // ── Top-bar qty controls ──────────────────────────────────────────────────
   const selectedCartItem = cart.items.find(i => i.id === cart.selectedId) ?? null;
@@ -130,6 +164,15 @@ export function RegisterDuoScreen({
         visible={paymentActive}
         chargeAmount={cart.chargeAmount}
         onCancel={onPaymentCancel}
+      />
+
+      {/* Item detail drawer — slides up when a variant product is tapped */}
+      <ItemDetailDrawer
+        visible={itemDetailProduct !== null}
+        product={itemDetailProduct}
+        onClose={onCloseItemDetail ?? (() => {})}
+        onSelectVariant={handleVariantSelect}
+        dark={dark}
       />
     </View>
   );
