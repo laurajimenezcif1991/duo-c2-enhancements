@@ -381,11 +381,24 @@ export function ItemDetailDrawer({
               <View style={{ height: Spacing[16] }} />
             </ScrollView>
 
-            <View style={[s.buttonBar, { borderTopColor: palette.border }]}>
-              <TouchableOpacity onPress={handleAddToOrder} style={s.addBtn} activeOpacity={0.85}>
-                <Text style={[s.addBtnLabel, { fontFamily: FontFamily.textMedium }]}>Add to order</Text>
-              </TouchableOpacity>
-            </View>
+            {(() => {
+              const hasCheckSel  = Object.values(checkSelections).some(set => set.size > 0);
+              const hasRadioSel  = Object.values(radioSelections).some(v => !!v);
+              const hasModGroups = (product?.modifierGroups?.length ?? 0) > 0;
+              // If no modifier groups exist, always enable; otherwise require at least one selection
+              const canAdd = !hasModGroups || hasCheckSel || hasRadioSel;
+              return (
+                <View style={[s.buttonBar, { borderTopColor: palette.border }]}>
+                  <TouchableOpacity
+                    onPress={canAdd ? handleAddToOrder : undefined}
+                    style={[s.addBtn, { backgroundColor: canAdd ? '#111111' : palette.neutral }]}
+                    activeOpacity={canAdd ? 0.85 : 1}
+                  >
+                    <Text style={[s.addBtnLabel, { fontFamily: FontFamily.textMedium }]}>Add to order</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })()}
           </>
         )}
 
@@ -485,13 +498,18 @@ export function ItemDetailDrawer({
                   Cancel
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleDiscountConfirm}
-                style={[s.confirmBtn, { backgroundColor: (discountPreset || discountAmount) ? TEAL_DARK : palette.neutral }]}
-                activeOpacity={0.85}
-              >
-                <Text style={[s.confirmBtnLabel, { fontFamily: FontFamily.textMedium }]}>Confirm</Text>
-              </TouchableOpacity>
+              {(() => {
+                const canConfirm = !!(discountPreset || discountAmount.trim());
+                return (
+                  <TouchableOpacity
+                    onPress={canConfirm ? handleDiscountConfirm : undefined}
+                    style={[s.confirmBtn, { backgroundColor: canConfirm ? TEAL_DARK : palette.neutral }]}
+                    activeOpacity={canConfirm ? 0.85 : 1}
+                  >
+                    <Text style={[s.confirmBtnLabel, { fontFamily: FontFamily.textMedium }]}>Confirm</Text>
+                  </TouchableOpacity>
+                );
+              })()}
             </View>
           </>
         )}
