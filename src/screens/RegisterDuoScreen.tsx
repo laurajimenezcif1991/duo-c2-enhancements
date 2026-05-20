@@ -83,6 +83,17 @@ export function RegisterDuoScreen({
     cartActions.addOrIncrement(id, product.name, product.price, priceValue);
   }, [cartActions, onOpenItemDetail]);
 
+  // ── Edit item from Order Details → close order screen, open item drawer ───
+  const handleEditOrderItem = useCallback((item: import('../types/cart').CartItem) => {
+    const variantProduct = Object.values(VARIANT_PRODUCTS).find(p =>
+      p.variants.some(v => v.id === item.id)
+    );
+    if (variantProduct) {
+      setOrderDetailsVisible(false);
+      onOpenItemDetail?.(variantProduct);
+    }
+  }, [onOpenItemDetail]);
+
   // ── "Add to order" confirmed inside drawer → add to cart, close drawer ────
   const handleAddToOrder = useCallback((variant: ProductVariant, qty: number, note: string) => {
     const label = `${itemDetailProduct?.name} | ${variant.color} | ${variant.size}`;
@@ -186,6 +197,7 @@ export function RegisterDuoScreen({
         onClose={() => setOrderDetailsVisible(false)}
         onCancel={() => setOrderDetailsVisible(false)}
         onCharge={() => { setOrderDetailsVisible(false); onCharge?.(); }}
+        onEditItem={handleEditOrderItem}
         dark={dark}
       />
     </View>

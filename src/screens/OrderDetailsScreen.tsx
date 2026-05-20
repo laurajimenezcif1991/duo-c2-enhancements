@@ -52,6 +52,8 @@ export type OrderDetailsScreenProps = {
   onClose:      () => void;
   onCharge?:    () => void;
   onCancel?:    () => void;
+  /** Called when the edit pencil is tapped on an item row */
+  onEditItem?:  (item: CartItem) => void;
   dark?:        boolean;
 };
 
@@ -66,6 +68,7 @@ export function OrderDetailsScreen({
   onClose,
   onCharge,
   onCancel,
+  onEditItem,
   dark = false,
 }: OrderDetailsScreenProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
@@ -169,6 +172,7 @@ export function OrderDetailsScreen({
                 onIncrement={() => cartActions.changeQty(item.id, +1)}
                 onDecrement={() => cartActions.changeQty(item.id, -1)}
                 onDelete={() => cartActions.deleteItem(item.id)}
+                onEdit={() => onEditItem?.(item)}
               />
             ))
           )}
@@ -241,12 +245,14 @@ function OrderItemRow({
   onIncrement,
   onDecrement,
   onDelete,
+  onEdit,
 }: {
   item:        CartItem;
   palette:     Palette;
   onIncrement: () => void;
   onDecrement: () => void;
   onDelete:    () => void;
+  onEdit?:     () => void;
 }) {
   const lineTotal = `$${(item.priceValue * item.quantity).toFixed(2)}`;
 
@@ -291,7 +297,7 @@ function OrderItemRow({
         </View>
 
         <View style={s.itemActions}>
-          <TouchableOpacity style={s.actionBtn} activeOpacity={0.7}>
+          <TouchableOpacity onPress={onEdit} style={s.actionBtn} activeOpacity={0.7}>
             <Icon name="edit" size={24} color={palette.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity onPress={onDelete} style={s.actionBtn} activeOpacity={0.7}>
