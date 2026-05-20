@@ -1,25 +1,24 @@
 /**
  * RegisterActionBar — Register App
  *
- * Figma: Smart Terminal Glass 2.0
- *   - Chips (individual):       node 3591:4462
- *   - Bottom Actions Pattern:   node 3473:3146
+ * Figma: Register-App-2025
+ *   Collapsed  (always visible): node 3473:3146
+ *   Expanded accordion:          node 6610:117817
  *
- * Renders the row of action chips above the main button bar:
- *   [✓ Tax ON]  [⊙ Discount]  [📤 Open Drawer]  [↑]
+ * Collapsed row (always visible):
+ *   [✓ Tax ON]  [⊙ Discount]  [📤 Open Drawer]  [↑ FAB]
  *
- * Design specs:
- *   - Container:  bg #111, paddingTop 16, paddingHorizontal 10, gap 6
- *   - Chip:       bg #353233, height 62, borderRadius 100, NO border
- *                 paddingHorizontal 16, paddingVertical 7
- *                 icon 24px + text 18px TextMedium white
- *   - FAB:        62×62 circle, bg #353233, arrow-up icon
- *   - Tax chip:   ok-filled icon (green circle checkmark) when taxEnabled=true
- *                 grey circle when taxEnabled=false
+ * Expanded — slides in above collapsed row:
+ *   Row 1: [Customer]
+ *   Row 2: [Save Order]  [$ Fee]  [✏ Add Notes]
+ *   Row 3: (same as collapsed, arrow now points ↓)
+ *
+ * Tapping FAB toggles expand/collapse with spring animation + arrow rotation.
  */
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Animated,
   Pressable,
   StyleSheet,
   Text,
@@ -31,11 +30,13 @@ import { FontFamily, FontSize } from '../../theme/typography';
 import { Spacing } from '../../theme/spacing';
 import { Icon } from '../ui/Icon';
 
-// Chip background is always dark (#353233) — it's a Figma component-level token
-// equivalent to "button/primary/background-tap" which lives outside the semantic palette.
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const CHIP_BG  = '#353233';
-const CHIP_SEL = '#767676'; // state=Selected
-const CHIP_DIS = '#afafaf'; // state=Disabled
+const CHIP_HIT = '#4a4748';
+
+// Two extra rows (62 chip + 16 gap + 62 chip) that slide in when expanded
+const EXPANDED_H = 62 + 16 + 62; // 140
 
 // ─── ActionChip ───────────────────────────────────────────────────────────────
 
@@ -58,25 +59,23 @@ export function ActionChip({
   onPress,
   style,
 }: ActionChipProps) {
-  const bg        = state === 'selected' ? CHIP_SEL : state === 'disabled' ? CHIP_DIS : CHIP_BG;
-  const textColor = state === 'disabled' ? '#767676' : '#ffffff';
+  const isDisabled = state === 'disabled';
+  const isSelected = state === 'selected';
+  const baseBg     = isDisabled ? '#afafaf' : isSelected ? '#767676' : CHIP_BG;
+  const textColor  = isDisabled ? '#767676' : '#ffffff';
 
   return (
     <Pressable
-      onPress={state !== 'disabled' ? onPress : undefined}
+      onPress={isDisabled ? undefined : onPress}
       style={({ pressed }) => [
-        styles.chip,
-        { backgroundColor: pressed && state === 'default' ? '#4a4748' : bg },
-        flex && styles.chipFlex,
+        s.chip,
+        { backgroundColor: pressed && !isDisabled ? CHIP_HIT : baseBg },
+        flex && s.chipFlex,
         style,
       ]}
     >
-      {iconName && (
-        <Icon name={iconName as any} size={24} color={textColor} />
-      )}
-      <Text style={[styles.chipLabel, { color: textColor }]}>
-        {label}
-      </Text>
+      {iconName && <Icon name={iconName as any} size={24} color={textColor} />}
+      <Text style={[s.chipLabel, { color: textColor }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -91,11 +90,8 @@ export type RegisterActionBarProps = {
   onFee?:        () => void;
   onAddNotes?:   () => void;
   onCustomer?:   () => void;
-  onExpand?:     () => void;
+  onSaveOrder?:  () => void;
   showDrawer?:   boolean;
-  showFee?:      boolean;
-  showNotes?:    boolean;
-  showCustomer?: boolean;
   dark?:         boolean;
   style?:        ViewStyle;
 };
@@ -108,97 +104,127 @@ export function RegisterActionBar({
   onFee,
   onAddNotes,
   onCustomer,
-  onExpand,
+  onSaveOrder,
   showDrawer   = true,
-  showFee      = false,
-  showNotes    = false,
-  showCustomer = false,
   dark         = false,
   style,
 }: RegisterActionBarProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  const heightAnim = useRef(new Animated.Value(0)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+
+  const toggle = () => {
+    const toValue = expanded ? 0 : 1;
+    Animated.parallel([
+      Animated.spring(heightAnim, {
+        toValue, useNativeDriver: false,
+        damping: 28, stiffness: 260, mass: 0.9,
+      }),
+      Animated.spring(rotateAnim, {
+        toValue, useNativeDriver: true,
+        damping: 28, stiffness: 260, mass: 0.9,
+      }),
+    ]).start();
+    setExpanded(v => !v);
+  };
+
+  const expandedHeight = heightAnim.interpolate({
+    inputRange:  [0, 1],
+    outputRange: [0, EXPANDED_H],
+  });
+
+  const arrowRotate = rotateAnim.interpolate({
+    inputRange:  [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
   return (
-    <View style={[styles.bar, style]}>
-      {/* Tax ON chip — green ok-filled icon when enabled */}
-      <Pressable
-        onPress={onTaxToggle}
-        style={({ pressed }) => [
-          styles.chip,
-          styles.chipFlex,
-          { backgroundColor: pressed ? '#4a4748' : CHIP_BG },
-        ]}
-      >
-        <Icon
-          name={taxEnabled ? 'ok-filled' : 'checkmark'}
-          size={24}
-          color={taxEnabled ? '#4CAF50' : '#ffffff'}
-        />
-        <Text style={styles.chipLabel}>
-          Tax {taxEnabled ? 'ON' : 'OFF'}
-        </Text>
-      </Pressable>
+    <View style={[s.bar, style]}>
 
-      {/* Discount chip */}
-      <ActionChip
-        label="Discount"
-        iconName="discount-reg"
-        flex
-        onPress={onDiscount}
-      />
+      {/* ── Expandable rows (slides in above collapsed row) ─────────────── */}
+      <Animated.View style={{ height: expandedHeight, overflow: 'hidden' }}>
+        <View style={s.expandedInner}>
 
-      {/* Open Drawer chip */}
-      {showDrawer && (
-        <ActionChip
-          label="Open Drawer"
-          iconName="drawer"
-          flex
-          onPress={onOpenDrawer}
-        />
-      )}
+          {/* Row 1: Customer */}
+          <View style={s.row}>
+            <ActionChip label="Customer" iconName="user-add" onPress={onCustomer} />
+          </View>
 
-      {/* Optional extras */}
-      {showFee && (
-        <ActionChip label="Fee" iconName="dollar-24" flex onPress={onFee} />
-      )}
-      {showNotes && (
-        <ActionChip label="Add Notes" iconName="draw-filled" flex onPress={onAddNotes} />
-      )}
-      {showCustomer && (
-        <ActionChip label="Customer" iconName="user-add-filled" flex onPress={onCustomer} />
-      )}
+          {/* Row 2: Save Order | Fee | Add Notes */}
+          <View style={s.row}>
+            <ActionChip label="Save Order" iconName="save"       onPress={onSaveOrder} />
+            <ActionChip label="Fee"        iconName="dollar-24"  flex onPress={onFee} />
+            <ActionChip label="Add Notes"  iconName="draw-24"    flex onPress={onAddNotes} />
+          </View>
 
-      {/* FAB — expand / collapse */}
-      <TouchableOpacity
-        onPress={onExpand}
-        style={styles.fab}
-        activeOpacity={0.75}
-      >
-        <Icon name="arrow-up-reg" size={24} color="#ffffff" />
-      </TouchableOpacity>
+        </View>
+      </Animated.View>
+
+      {/* ── Collapsed row (always visible) ──────────────────────────────── */}
+      <View style={s.row}>
+
+        {/* Tax toggle */}
+        <Pressable
+          onPress={onTaxToggle}
+          style={({ pressed }) => [s.chip, s.chipFlex, { backgroundColor: pressed ? CHIP_HIT : CHIP_BG }]}
+        >
+          <Icon
+            name={taxEnabled ? 'ok-filled' : 'checkmark'}
+            size={24}
+            color={taxEnabled ? '#4CAF50' : '#ffffff'}
+          />
+          <Text style={s.chipLabel}>Tax {taxEnabled ? 'ON' : 'OFF'}</Text>
+        </Pressable>
+
+        {/* Discount */}
+        <ActionChip label="Discount" iconName="discount-reg" flex onPress={onDiscount} />
+
+        {/* Open Drawer */}
+        {showDrawer && (
+          <ActionChip label="Open Drawer" iconName="drawer" flex onPress={onOpenDrawer} />
+        )}
+
+        {/* FAB — rotates ↑ (collapsed) ↓ (expanded) */}
+        <TouchableOpacity onPress={toggle} style={s.fab} activeOpacity={0.75}>
+          <Animated.View style={{ transform: [{ rotate: arrowRotate }] }}>
+            <Icon name="arrow-up-reg" size={24} color="#ffffff" />
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
+
     </View>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   bar: {
-    flexDirection:    'row',
-    alignItems:       'center',
-    backgroundColor:  '#111111',
-    paddingTop:       Spacing[16],
-    paddingHorizontal: 10,           // Figma: 10px — not in spacing scale, use raw value
-    gap:              Spacing[6],
-    paddingBottom:    0,
+    backgroundColor:   '#111111',
+    paddingTop:        Spacing[16],
+    paddingHorizontal: 10,
+    gap:               Spacing[16],
+    paddingBottom:     0,
+  },
+  expandedInner: {
+    gap:           Spacing[16],
+    paddingBottom: Spacing[16],
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           Spacing[6],
   },
   chip: {
-    flexDirection:    'row',
-    alignItems:       'center',
-    justifyContent:   'center',
-    height:           62,
-    borderRadius:     100,
+    flexDirection:     'row',
+    alignItems:        'center',
+    justifyContent:    'center',
+    height:            62,
+    borderRadius:      100,
     paddingHorizontal: Spacing[16],
-    paddingVertical:  7,
-    gap:              Spacing[6],
+    paddingVertical:   7,
+    gap:               Spacing[6],
   },
   chipFlex: {
     flex: 1,
@@ -211,11 +237,11 @@ const styles = StyleSheet.create({
     textAlign:  'center',
   },
   fab: {
-    width:          62,
-    height:         62,
-    borderRadius:   100,
+    width:           62,
+    height:          62,
+    borderRadius:    100,
     backgroundColor: CHIP_BG,
-    alignItems:     'center',
-    justifyContent: 'center',
+    alignItems:      'center',
+    justifyContent:  'center',
   },
 });
