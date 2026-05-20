@@ -178,9 +178,9 @@ export function ItemDetailDrawer({
           /* Modifier header — light */
           <View style={[s.lightHeader, { borderBottomColor: palette.border }]}>
             <TouchableOpacity onPress={handleBack} style={s.backBtn} activeOpacity={0.7}>
-              <Icon name="chevron-left" size={24} color={palette.textPrimary} />
+              <Icon name="chevron-left" size={24} color="#ffffff" />
               <Text
-                style={[s.lightHeaderTitle, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}
+                style={[s.lightHeaderTitle, { color: '#ffffff', fontFamily: FontFamily.textMedium }]}
                 numberOfLines={1}
               >
                 {modVariant ? `${product?.name} (${modVariant.color}, ${modVariant.size})` : ''}
@@ -497,15 +497,14 @@ const s = StyleSheet.create({
     marginLeft:     Spacing[8],
   },
 
-  // ── Modifier header (light) ───────────────────────────────────────────────
+  // ── Modifier header (dark — same bg as variant list header) ─────────────
   lightHeader: {
     height:            76,
     flexDirection:     'row',
     alignItems:        'center',
     justifyContent:    'space-between',
     paddingHorizontal: Spacing[16],
-    borderBottomWidth: 1,
-    backgroundColor:   '#ffffff',
+    backgroundColor:   '#111111',
   },
   backBtn: {
     flexDirection: 'row',
