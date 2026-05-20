@@ -427,15 +427,15 @@ export function ItemDetailDrawer({
                         onPress={() => setDiscountPreset(isSelected ? null : preset.id)}
                         style={[
                           s.presetCard,
-                          { backgroundColor: isSelected ? TEAL_LITE : palette.bgAccent },
+                          { backgroundColor: isSelected ? TEAL : palette.bgAccent },
                           isSelected && s.presetCardSelected,
                         ]}
                         activeOpacity={0.8}
                       >
-                        <Text style={[s.presetValue, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+                        <Text style={[s.presetValue, { color: isSelected ? '#ffffff' : palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
                           {preset.value}
                         </Text>
-                        <Text style={[s.presetLabel, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+                        <Text style={[s.presetLabel, { color: isSelected ? '#ffffff' : palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
                           {preset.label}
                         </Text>
                       </TouchableOpacity>
