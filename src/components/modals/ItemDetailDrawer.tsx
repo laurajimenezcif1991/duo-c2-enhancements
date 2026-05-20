@@ -603,7 +603,7 @@ const s = StyleSheet.create({
     alignItems:        'center',
     justifyContent:    'space-between',
     paddingHorizontal: Spacing[16],
-    paddingVertical:   Spacing[20],
+    height:            84,
     borderTopWidth:    1,
   },
   modSectionLabel: {
