@@ -62,9 +62,10 @@ const DISCOUNT_PRESETS = [
 type DrawerView = 'variants' | 'modifier' | 'discount';
 
 type AppliedDiscount = {
-  type:  '$' | '%';
-  value: string;
-  label: string;
+  type:    '$' | '%';
+  value:   string;   // e.g. "10%"
+  label:   string;   // e.g. "Local Discount"
+  postTax: boolean;
 };
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -189,18 +190,16 @@ export function ItemDetailDrawer({
   };
 
   const handleDiscountConfirm = () => {
-    // Build label from preset or custom input
     if (discountPreset) {
       const preset = DISCOUNT_PRESETS.find(p => p.id === discountPreset);
       if (preset) {
-        setAppliedDiscount({ type: '%', value: preset.value, label: preset.label });
+        setAppliedDiscount({ type: '%', value: preset.value, label: preset.label, postTax: taxAfterDiscount });
       }
     } else if (discountAmount) {
-      setAppliedDiscount({
-        type:  discountType,
-        value: `${discountType === '%' ? '' : '$'}${discountAmount}${discountType === '%' ? '%' : ''}`,
-        label: 'Custom',
-      });
+      const formatted = discountType === '%'
+        ? `${discountAmount}%`
+        : `$${discountAmount}`;
+      setAppliedDiscount({ type: discountType, value: formatted, label: 'Custom', postTax: taxAfterDiscount });
     }
     setView('modifier');
   };
@@ -327,34 +326,42 @@ export function ItemDetailDrawer({
               </View>
 
               {/* Discount */}
-              <View style={[s.modSection, { borderTopColor: palette.border }]}>
-                <Text style={[s.modSectionLabel, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
-                  Discount
-                </Text>
-                {appliedDiscount ? (
-                  <View style={s.appliedRow}>
-                    <Text style={[s.appliedValue, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
-                      {appliedDiscount.value}
-                    </Text>
-                    <TouchableOpacity onPress={handleRemoveDiscount} activeOpacity={0.7} style={s.trashBtn}>
-                      <Icon name="trash" size={20} color={palette.textSecondary} />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
+              <View style={[s.modListSection, { borderTopColor: palette.border }]}>
+                <View style={s.modListHeader}>
+                  <Text style={[s.modSectionLabel, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+                    Discount
+                  </Text>
                   <TouchableOpacity onPress={openDiscountView} activeOpacity={0.7}>
                     <Text style={[s.addLink, { fontFamily: FontFamily.textMedium }]}>+ Add</Text>
                   </TouchableOpacity>
+                </View>
+                {appliedDiscount && (
+                  <View style={[s.appliedCard, { backgroundColor: palette.bgLight }]}>
+                    <Text style={[s.appliedCardLabel, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]} numberOfLines={1}>
+                      {appliedDiscount.label} {appliedDiscount.value}{appliedDiscount.postTax ? ' (Post Tax)' : ''}
+                    </Text>
+                    <View style={s.appliedCardRight}>
+                      <Text style={[s.appliedCardAmount, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+                        -{appliedDiscount.type === '%' ? '' : ''}{appliedDiscount.value}
+                      </Text>
+                      <TouchableOpacity onPress={handleRemoveDiscount} activeOpacity={0.7}>
+                        <Icon name="trash" size={20} color={palette.textSecondary} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 )}
               </View>
 
               {/* Fee */}
-              <View style={[s.modSection, { borderTopColor: palette.border }]}>
-                <Text style={[s.modSectionLabel, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
-                  Fee
-                </Text>
-                <TouchableOpacity activeOpacity={0.7}>
-                  <Text style={[s.addLink, { fontFamily: FontFamily.textMedium }]}>+ Add</Text>
-                </TouchableOpacity>
+              <View style={[s.modListSection, { borderTopColor: palette.border }]}>
+                <View style={s.modListHeader}>
+                  <Text style={[s.modSectionLabel, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+                    Fee
+                  </Text>
+                  <TouchableOpacity activeOpacity={0.7}>
+                    <Text style={[s.addLink, { fontFamily: FontFamily.textMedium }]}>+ Add</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
 
               {/* Note */}
@@ -668,12 +675,22 @@ const s = StyleSheet.create({
   badgeText: { fontFamily: FontFamily.textBold, fontSize: FontSize.labelSM, lineHeight: FontSize.labelSM * 1.2, color: '#ffffff', textTransform: 'uppercase' },
 
   // ── Modifier rows ────────────────────────────────────────────────────────
+  // Fixed-height row for Select Quantity (no card below)
   modSection: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: Spacing[16], height: 84, borderTopWidth: 1 },
+  // Variable-height section for Discount / Fee (can grow to show cards)
+  modListSection: { paddingHorizontal: Spacing[16], paddingVertical: Spacing[20], gap: Spacing[12], borderTopWidth: 1, minHeight: 84 },
+  modListHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   modSectionLabel: { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2 },
   addLink: { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2, color: TEAL },
-  appliedRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing[12] },
-  appliedValue: { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2 },
-  trashBtn: { padding: Spacing[4] },
+  // Applied discount/fee card
+  appliedCard: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    borderRadius: Radius.md, paddingHorizontal: Spacing[16], paddingVertical: Spacing[16],
+    gap: Spacing[8],
+  },
+  appliedCardLabel: { flex: 1, fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
+  appliedCardRight: { flexDirection: 'row', alignItems: 'center', gap: Spacing[12] },
+  appliedCardAmount: { fontSize: FontSize.bodyMD, lineHeight: FontSize.bodyMD * 1.5 },
 
   // ── Quantity ─────────────────────────────────────────────────────────────
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 2 },
