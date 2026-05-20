@@ -545,23 +545,21 @@ export function C2PaymentPrompt({ chargeAmount, onComplete, variant = 'A' }: C2P
           </>
         ) : (
           <>
+            {/* ── Instruction label — above NFC icon ──────────────────── */}
+            <Text style={s2.promptLabel}>
+              {state === 'processing' ? 'Processing…' : 'Tap, Insert or Swipe'}
+            </Text>
+
             <TouchableOpacity
               onPress={handleTap}
               activeOpacity={0.75}
               style={s2.nfcBtn}
               disabled={state !== 'waiting'}
             >
-              <Icon name="nfc" size={112} color={PF.nudgeGray} />
+              <Icon name="nfc" size={112} color="#111111" />
             </TouchableOpacity>
 
-            {/* ── Instruction + variant nudge row ─────────────────────── */}
-            <View style={s2.bottomStack}>
-              <Text style={s2.promptLabel}>
-                {state === 'processing' ? 'Processing…' : 'Insert, Swipe, or Tap'}
-              </Text>
-
-              {state === 'waiting' && <NudgeRow variant={variant} />}
-            </View>
+            {state === 'waiting' && <NudgeRow variant={variant} />}
           </>
         )}
       </View>
@@ -640,23 +638,18 @@ const s2 = StyleSheet.create({
     flex:           1,
     alignItems:     'center',
     justifyContent: 'center',
+    gap:            16,
     paddingBottom:  16,
   },
   nfcBtn: {
     alignItems:     'center',
     justifyContent: 'center',
   },
-
-  bottomStack: {
-    alignItems: 'center',
-    gap:        8,
-    marginTop:  16,
-  },
   promptLabel: {
     fontFamily: FontFamily.displayRegular,
     fontSize:   28,
     lineHeight: 34,
-    color:      PF.nudgeGray,
+    color:      '#2544B7',
     textAlign:  'center',
     paddingHorizontal: 24,
   },
