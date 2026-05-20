@@ -502,20 +502,8 @@ type C2PromptProps = {
 
 export function C2PaymentPrompt({ chargeAmount, onComplete, variant = 'A' }: C2PromptProps) {
   const [state, setState] = useState<C2PromptState>('waiting');
-  const pulse = useRef(new Animated.Value(1)).current;
 
-  // Pulse animation on the NFC icon
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.12, duration: 700, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1,    duration: 700, useNativeDriver: true }),
-      ]),
-    );
-    if (state === 'waiting') loop.start();
-    else { loop.stop(); pulse.setValue(1); }
-    return () => loop.stop();
-  }, [state, pulse]);
+  // Pulse animation removed — NFC icon is static
 
   // Reset state when variant changes so stakeholders see a fresh screen
   useEffect(() => { setState('waiting'); }, [variant]);
@@ -563,9 +551,7 @@ export function C2PaymentPrompt({ chargeAmount, onComplete, variant = 'A' }: C2P
               style={s2.nfcBtn}
               disabled={state !== 'waiting'}
             >
-              <Animated.View style={{ transform: [{ scale: pulse }] }}>
-                <Icon name="nfc" size={112} color={PF.nudgeGray} />
-              </Animated.View>
+              <Icon name="nfc" size={112} color={PF.nudgeGray} />
             </TouchableOpacity>
 
             {/* ── Instruction + variant nudge row ─────────────────────── */}
@@ -587,11 +573,7 @@ export function C2PaymentPrompt({ chargeAmount, onComplete, variant = 'A' }: C2P
 
 function NudgeRow({ variant }: { variant: C2Variant }) {
   if (variant === 'A') {
-    return (
-      <View style={s2.nudgeRow}>
-        <Text style={s2.nudgeTextBold}>Debit or Credit card</Text>
-      </View>
-    );
+    return null;
   }
   if (variant === 'B') {
     return (
