@@ -137,7 +137,7 @@ export function OrderDetailsScreen({
         {/* Tax row */}
         <TouchableOpacity
           onPress={onTaxToggle}
-          style={[s.taxRow, { backgroundColor: palette.bgLevel1, borderBottomColor: palette.border }]}
+          style={[s.taxRow, { backgroundColor: palette.bgLight, borderBottomColor: palette.border }]}
           activeOpacity={0.8}
         >
           <View style={s.taxLeft}>

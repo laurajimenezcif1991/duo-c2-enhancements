@@ -170,26 +170,47 @@ export function ItemDetailDrawer({
   const [feeType,     setFeeType]     = useState<'$' | '%'>('%');
   const [feeAmount,   setFeeAmount]   = useState('');
 
-  // When a new editCartItem arrives (drawer re-opens for a different item), reset state
+  // When a new editCartItem arrives (drawer re-opens for a different item), restore all state
   useEffect(() => {
-    if (editCartItem) {
-      setView('modifier');
-      setModVariant(editVariant ?? null);
-      setQuantity(editCartItem.quantity);
-      setNote(editCartItem.note ?? '');
-      setCheckSelections({});
-      setRadioSelections({});
-      setAppliedDiscount(
-        editCartItem.discount
-          ? { type: editCartItem.discount.type, value: editCartItem.discount.value, label: editCartItem.discount.label, postTax: editCartItem.discount.postTax }
-          : null
-      );
-      setAppliedFee(
-        editCartItem.fee
-          ? { type: editCartItem.fee.type, value: editCartItem.fee.value, label: editCartItem.fee.label, postTax: editCartItem.fee.postTax }
-          : null
-      );
+    if (!editCartItem) return;
+
+    setView('modifier');
+    setModVariant(editVariant ?? null);
+    setQuantity(editCartItem.quantity);
+    setNote(editCartItem.note ?? '');
+
+    // Restore checkbox / radio selections from saved addOns by matching label+price
+    const savedAddOns = editCartItem.addOns ?? [];
+    const nextCheck: Record<string, Set<string>> = {};
+    const nextRadio: Record<string, string>      = {};
+
+    if (product?.modifierGroups && savedAddOns.length > 0) {
+      for (const group of product.modifierGroups) {
+        for (const opt of group.options) {
+          const matched = savedAddOns.some(a => a.label === opt.label && a.price === opt.price);
+          if (!matched) continue;
+          if (group.type === 'checkbox') {
+            if (!nextCheck[group.id]) nextCheck[group.id] = new Set();
+            nextCheck[group.id].add(opt.id);
+          } else {
+            nextRadio[group.id] = opt.id;
+          }
+        }
+      }
     }
+    setCheckSelections(nextCheck);
+    setRadioSelections(nextRadio);
+
+    setAppliedDiscount(
+      editCartItem.discount
+        ? { type: editCartItem.discount.type, value: editCartItem.discount.value, label: editCartItem.discount.label, postTax: editCartItem.discount.postTax }
+        : null
+    );
+    setAppliedFee(
+      editCartItem.fee
+        ? { type: editCartItem.fee.type, value: editCartItem.fee.value, label: editCartItem.fee.label, postTax: editCartItem.fee.postTax }
+        : null
+    );
   }, [editCartItem?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Reset all when drawer closes (non-edit mode)
