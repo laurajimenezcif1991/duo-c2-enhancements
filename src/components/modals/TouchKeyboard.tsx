@@ -144,7 +144,7 @@ export function TouchKeyboard({ value, maxLength, onChange, onDismiss }: TouchKe
     onChange(value + char);
     // Auto-revert to lower after a single capital
     if (mode === 'qwerty-upper') setMode('qwerty');
-  }, [value, maxLength, mode, onChange, onSubmit]);
+  }, [value, maxLength, mode, onChange, onDismiss]);
 
   // Pick rows based on mode
   let rows: KDef[][];
