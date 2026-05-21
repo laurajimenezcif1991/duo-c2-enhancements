@@ -20,8 +20,10 @@ import { ProductGrid, type GridProduct } from '../components/register/ProductGri
 import { RegisterActionBar } from '../components/register/RegisterActionBar';
 import { RegisterBottomBar } from '../components/register/RegisterBottomBar';
 import { C1PaymentPanel }   from '../components/payment/PaymentFragment';
-import { ItemDetailDrawer }   from '../components/modals/ItemDetailDrawer';
-import { OrderDetailsScreen } from './OrderDetailsScreen';
+import { ItemDetailDrawer }            from '../components/modals/ItemDetailDrawer';
+import { InputModal }                  from '../components/modals/InputModal';
+import { OrderLevelModifierDrawer }    from '../components/modals/OrderLevelModifierDrawer';
+import { OrderDetailsScreen }          from './OrderDetailsScreen';
 import type { CartItem, CartState, CartActions, CartAddOn, CartAppliedModifier, UpdateItemPayload } from '../types/cart';
 import type { VariantProduct, ProductVariant } from '../types/variants';
 import { SAMPLE_PRODUCTS, VARIANT_PRODUCTS } from './sampleData';
@@ -63,6 +65,16 @@ export function RegisterDuoScreen({
   const [orderDetailsVisible, setOrderDetailsVisible] = useState(false);
   /** Cart item currently open in the edit modifier drawer */
   const [editingCartItem,     setEditingCartItem]    = useState<CartItem | null>(null);
+
+  // ── Order-level state (shared with action bar + order details) ────────────
+  const [customerName,           setCustomerName]           = useState('');
+  const [orderNote,              setOrderNote]              = useState('');
+  const [orderDiscount,          setOrderDiscount]          = useState<CartAppliedModifier | null>(null);
+  const [orderFee,               setOrderFee]               = useState<CartAppliedModifier | null>(null);
+  const [customerNameVisible,    setCustomerNameVisible]    = useState(false);
+  const [orderNoteVisible,       setOrderNoteVisible]       = useState(false);
+  const [orderDiscountVisible,   setOrderDiscountVisible]   = useState(false);
+  const [orderFeeVisible,        setOrderFeeVisible]        = useState(false);
 
   // ── Product tap ───────────────────────────────────────────────────────────
   const handleProductPress = useCallback((product: GridProduct) => {
@@ -177,6 +189,16 @@ export function RegisterDuoScreen({
           onCharge={() => { setOrderDetailsVisible(false); onCharge?.(); }}
           onEditItem={handleEditOrderItem}
           dark={dark}
+          customerName={customerName}
+          onEditCustomerName={() => setCustomerNameVisible(true)}
+          orderNote={orderNote}
+          onEditOrderNote={() => setOrderNoteVisible(true)}
+          orderDiscount={orderDiscount}
+          onAddOrderDiscount={() => setOrderDiscountVisible(true)}
+          onRemoveOrderDiscount={() => setOrderDiscount(null)}
+          orderFee={orderFee}
+          onAddOrderFee={() => setOrderFeeVisible(true)}
+          onRemoveOrderFee={() => setOrderFee(null)}
         />
       ) : (
         <>
@@ -195,6 +217,10 @@ export function RegisterDuoScreen({
           <RegisterActionBar
             taxEnabled={taxEnabled}
             onTaxToggle={() => setTax(t => !t)}
+            onCustomer={() => setCustomerNameVisible(true)}
+            onAddNotes={() => setOrderNoteVisible(true)}
+            onDiscount={() => setOrderDiscountVisible(true)}
+            onFee={() => setOrderFeeVisible(true)}
             showDrawer
             dark={dark}
           />
@@ -215,6 +241,48 @@ export function RegisterDuoScreen({
         visible={paymentActive}
         chargeAmount={cart.chargeAmount}
         onCancel={onPaymentCancel}
+      />
+
+      {/* ── Order-level Customer Name modal ─────────────────────────────────── */}
+      <InputModal
+        visible={customerNameVisible}
+        label="Customer Name"
+        maxLength={64}
+        initialValue={customerName}
+        onConfirm={v => { setCustomerName(v); setCustomerNameVisible(false); }}
+        onCancel={() => setCustomerNameVisible(false)}
+        dark={dark}
+      />
+
+      {/* ── Order-level Note modal ────────────────────────────────────────────── */}
+      <InputModal
+        visible={orderNoteVisible}
+        label="Note"
+        maxLength={200}
+        initialValue={orderNote}
+        onConfirm={v => { setOrderNote(v); setOrderNoteVisible(false); }}
+        onCancel={() => setOrderNoteVisible(false)}
+        dark={dark}
+      />
+
+      {/* ── Order-level Discount drawer ───────────────────────────────────────── */}
+      <OrderLevelModifierDrawer
+        visible={orderDiscountVisible}
+        mode="discount"
+        initial={orderDiscount}
+        onConfirm={mod => { setOrderDiscount(mod); setOrderDiscountVisible(false); }}
+        onClose={() => setOrderDiscountVisible(false)}
+        dark={dark}
+      />
+
+      {/* ── Order-level Fee drawer ────────────────────────────────────────────── */}
+      <OrderLevelModifierDrawer
+        visible={orderFeeVisible}
+        mode="fee"
+        initial={orderFee}
+        onConfirm={mod => { setOrderFee(mod); setOrderFeeVisible(false); }}
+        onClose={() => setOrderFeeVisible(false)}
+        dark={dark}
       />
 
       {/* Item detail drawer — add mode (variant selection) OR edit mode (modifier editing) */}

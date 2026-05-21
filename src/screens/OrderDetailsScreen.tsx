@@ -21,7 +21,7 @@
  *     [CANCEL]  [CASH]  [CHARGE $x.xx]
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -33,21 +33,30 @@ import { ColorTokens }          from '../theme/colors';
 import { FontFamily, FontSize } from '../theme/typography';
 import { Radius, Spacing }      from '../theme/spacing';
 import { Icon }                 from '../components/ui/Icon';
-import { InputModal }           from '../components/modals/InputModal';
 import type { CartItem, CartState, CartActions, CartAddOn, CartAppliedModifier } from '../types/cart';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 export type OrderDetailsScreenProps = {
-  cart:         CartState;
-  cartActions:  CartActions;
-  taxEnabled:   boolean;
-  onTaxToggle:  () => void;
-  onCancel?:    () => void;
-  onCharge?:    () => void;
-  /** Called when the edit pencil is tapped on an item row */
-  onEditItem?:  (item: CartItem) => void;
-  dark?:        boolean;
+  cart:                   CartState;
+  cartActions:            CartActions;
+  taxEnabled:             boolean;
+  onTaxToggle:            () => void;
+  onCancel?:              () => void;
+  onCharge?:              () => void;
+  onEditItem?:            (item: CartItem) => void;
+  dark?:                  boolean;
+  // ── Order-level values (owned by RegisterDuoScreen) ────────────────────
+  customerName?:          string;
+  onEditCustomerName?:    () => void;
+  orderNote?:             string;
+  onEditOrderNote?:       () => void;
+  orderDiscount?:         CartAppliedModifier | null;
+  onAddOrderDiscount?:    () => void;
+  onRemoveOrderDiscount?: () => void;
+  orderFee?:              CartAppliedModifier | null;
+  onAddOrderFee?:         () => void;
+  onRemoveOrderFee?:      () => void;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -61,6 +70,16 @@ export function OrderDetailsScreen({
   onCharge,
   onEditItem,
   dark = false,
+  customerName          = '',
+  onEditCustomerName,
+  orderNote             = '',
+  onEditOrderNote,
+  orderDiscount         = null,
+  onAddOrderDiscount,
+  onRemoveOrderDiscount,
+  orderFee              = null,
+  onAddOrderFee,
+  onRemoveOrderFee,
 }: OrderDetailsScreenProps) {
   const palette = dark ? ColorTokens.dark : ColorTokens.light;
 
@@ -68,34 +87,8 @@ export function OrderDetailsScreen({
   const grandTotal = cart.total + taxAmount;
   const fmt = (n: number) => `$${n.toFixed(2)}`;
 
-  // ── Order-level customer name & note ──────────────────────────────────────
-  const [customerName,        setCustomerName]        = useState('');
-  const [orderNote,           setOrderNote]           = useState('');
-  const [customerNameVisible, setCustomerNameVisible] = useState(false);
-  const [noteVisible,         setNoteVisible]         = useState(false);
-
   return (
     <View style={[s.root, { backgroundColor: palette.bgSurface }]}>
-
-      {/* ── Modals ─────────────────────────────────────────────────────────── */}
-      <InputModal
-        visible={customerNameVisible}
-        label="Customer Name"
-        maxLength={64}
-        initialValue={customerName}
-        onConfirm={v => { setCustomerName(v); setCustomerNameVisible(false); }}
-        onCancel={() => setCustomerNameVisible(false)}
-        dark={dark}
-      />
-      <InputModal
-        visible={noteVisible}
-        label="Note"
-        maxLength={200}
-        initialValue={orderNote}
-        onConfirm={v => { setOrderNote(v); setNoteVisible(false); }}
-        onCancel={() => setNoteVisible(false)}
-        dark={dark}
-      />
 
       {/* ── Scrollable order content ─────────────────────────────────────── */}
       <ScrollView
@@ -103,11 +96,11 @@ export function OrderDetailsScreen({
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Customer Name card — shows filled name when set */}
+        {/* Customer Name card */}
         <TouchableOpacity
           style={[s.ctaCard, { backgroundColor: palette.bgBase }]}
           activeOpacity={0.8}
-          onPress={() => setCustomerNameVisible(true)}
+          onPress={onEditCustomerName}
         >
           <Text
             style={[s.ctaLabel, { color: '#ffffff', fontFamily: FontFamily.textMedium }]}
@@ -122,7 +115,7 @@ export function OrderDetailsScreen({
         <TouchableOpacity
           style={[s.ctaCard, { backgroundColor: palette.bgAccent }]}
           activeOpacity={0.8}
-          onPress={() => setNoteVisible(true)}
+          onPress={onEditOrderNote}
         >
           <Text
             style={[s.ctaLabel, { color: TEAL_DARK, fontFamily: FontFamily.textMedium }]}
@@ -155,6 +148,25 @@ export function OrderDetailsScreen({
             ))
           )}
         </View>
+
+        {/* ── Order-level Discount Applied ─────────────────────────────── */}
+        <OrderModSection
+          label="Discount Applied"
+          applied={orderDiscount}
+          palette={palette}
+          onAdd={onAddOrderDiscount}
+          onRemove={onRemoveOrderDiscount}
+        />
+
+        {/* ── Order-level Fee Applied ───────────────────────────────────── */}
+        <OrderModSection
+          label="Fee Applied"
+          applied={orderFee}
+          palette={palette}
+          onAdd={onAddOrderFee}
+          onRemove={onRemoveOrderFee}
+        />
+
       </ScrollView>
 
       {/* ── Bottom: Subtotal + Tax + Charge buttons ──────────────────────── */}
@@ -482,4 +494,65 @@ const s = StyleSheet.create({
   btnLabel:  { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2, color: '#ffffff', textAlign: 'center' },
   chargeLabel:  { fontSize: FontSize.labelSM, lineHeight: FontSize.labelSM * 1.2, color: '#ffffff', textTransform: 'uppercase', marginBottom: Spacing[4] },
   chargeAmount: { fontSize: FontSize.headingLG, lineHeight: FontSize.headingLG * 1.2, color: '#ffffff' },
+
+  // Order-level modifier sections
+  modSection:  { paddingHorizontal: Spacing[16], paddingTop: Spacing[16], gap: Spacing[8] },
+  modHeader:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  modTitle:    { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2 },
+  modAdd:      { fontSize: FontSize.headingXS, lineHeight: FontSize.headingXS * 1.2, color: '#09757A' },
+  appliedCard: {
+    flexDirection:  'row',
+    alignItems:     'center',
+    backgroundColor:'#F6F6F6',
+    borderRadius:   Radius.md,
+    paddingVertical:   Spacing[16],
+    paddingHorizontal: Spacing[16],
+    gap: Spacing[8],
+  },
+  appliedLabel:{ flex: 1, fontSize: FontSize.bodyMD },
+  appliedValue:{ fontSize: FontSize.bodyMD },
 });
+
+// ─── OrderModSection ─────────────────────────────────────────────────────────
+
+type OrderPalette = typeof ColorTokens.light;
+
+function OrderModSection({
+  label,
+  applied,
+  palette,
+  onAdd,
+  onRemove,
+}: {
+  label:    string;
+  applied:  CartAppliedModifier | null | undefined;
+  palette:  OrderPalette;
+  onAdd?:   () => void;
+  onRemove?:() => void;
+}) {
+  return (
+    <View style={s.modSection}>
+      <View style={s.modHeader}>
+        <Text style={[s.modTitle, { color: palette.textPrimary, fontFamily: FontFamily.textMedium }]}>
+          {label}
+        </Text>
+        <TouchableOpacity onPress={onAdd} activeOpacity={0.7}>
+          <Text style={[s.modAdd, { fontFamily: FontFamily.textMedium }]}>+ Add</Text>
+        </TouchableOpacity>
+      </View>
+      {applied && (
+        <View style={s.appliedCard}>
+          <Text style={[s.appliedLabel, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+            {applied.label}
+          </Text>
+          <Text style={[s.appliedValue, { color: palette.textSecondary, fontFamily: FontFamily.textRegular }]}>
+            {applied.value}
+          </Text>
+          <TouchableOpacity onPress={onRemove} activeOpacity={0.7} style={{ padding: 4 }}>
+            <Icon name="trash" size={20} color={palette.textSecondary} />
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
