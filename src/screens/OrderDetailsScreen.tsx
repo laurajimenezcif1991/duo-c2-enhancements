@@ -149,23 +149,27 @@ export function OrderDetailsScreen({
           )}
         </View>
 
-        {/* ── Order-level Discount Applied ─────────────────────────────── */}
-        <OrderModSection
-          label="Discount Applied"
-          applied={orderDiscount}
-          palette={palette}
-          onAdd={onAddOrderDiscount}
-          onRemove={onRemoveOrderDiscount}
-        />
+        {/* ── Order-level Discount Applied — only when applied ─────────── */}
+        {orderDiscount && (
+          <OrderModSection
+            label="Discount Applied"
+            applied={orderDiscount}
+            palette={palette}
+            onAdd={onAddOrderDiscount}
+            onRemove={onRemoveOrderDiscount}
+          />
+        )}
 
-        {/* ── Order-level Fee Applied ───────────────────────────────────── */}
-        <OrderModSection
-          label="Fee Applied"
-          applied={orderFee}
-          palette={palette}
-          onAdd={onAddOrderFee}
-          onRemove={onRemoveOrderFee}
-        />
+        {/* ── Order-level Fee Applied — only when applied ───────────────── */}
+        {orderFee && (
+          <OrderModSection
+            label="Fee Applied"
+            applied={orderFee}
+            palette={palette}
+            onAdd={onAddOrderFee}
+            onRemove={onRemoveOrderFee}
+          />
+        )}
 
       </ScrollView>
 
