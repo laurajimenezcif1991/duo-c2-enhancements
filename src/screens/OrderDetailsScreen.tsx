@@ -21,7 +21,7 @@
  *     [CANCEL]  [CASH]  [CHARGE $x.xx]
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -33,6 +33,7 @@ import { ColorTokens }          from '../theme/colors';
 import { FontFamily, FontSize } from '../theme/typography';
 import { Radius, Spacing }      from '../theme/spacing';
 import { Icon }                 from '../components/ui/Icon';
+import { InputModal }           from '../components/modals/InputModal';
 import type { CartItem, CartState, CartActions, CartAddOn, CartAppliedModifier } from '../types/cart';
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -67,8 +68,34 @@ export function OrderDetailsScreen({
   const grandTotal = cart.total + taxAmount;
   const fmt = (n: number) => `$${n.toFixed(2)}`;
 
+  // ── Order-level customer name & note ──────────────────────────────────────
+  const [customerName,        setCustomerName]        = useState('');
+  const [orderNote,           setOrderNote]           = useState('');
+  const [customerNameVisible, setCustomerNameVisible] = useState(false);
+  const [noteVisible,         setNoteVisible]         = useState(false);
+
   return (
     <View style={[s.root, { backgroundColor: palette.bgSurface }]}>
+
+      {/* ── Modals ─────────────────────────────────────────────────────────── */}
+      <InputModal
+        visible={customerNameVisible}
+        label="Customer Name"
+        maxLength={64}
+        initialValue={customerName}
+        onConfirm={v => { setCustomerName(v); setCustomerNameVisible(false); }}
+        onCancel={() => setCustomerNameVisible(false)}
+        dark={dark}
+      />
+      <InputModal
+        visible={noteVisible}
+        label="Note"
+        maxLength={200}
+        initialValue={orderNote}
+        onConfirm={v => { setOrderNote(v); setNoteVisible(false); }}
+        onCancel={() => setNoteVisible(false)}
+        dark={dark}
+      />
 
       {/* ── Scrollable order content ─────────────────────────────────────── */}
       <ScrollView
@@ -76,24 +103,32 @@ export function OrderDetailsScreen({
         contentContainerStyle={s.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Add Customer Name card */}
+        {/* Customer Name card — shows filled name when set */}
         <TouchableOpacity
           style={[s.ctaCard, { backgroundColor: palette.bgBase }]}
           activeOpacity={0.8}
+          onPress={() => setCustomerNameVisible(true)}
         >
-          <Text style={[s.ctaLabel, { color: '#ffffff', fontFamily: FontFamily.textMedium }]}>
-            Add Customer Name
+          <Text
+            style={[s.ctaLabel, { color: '#ffffff', fontFamily: FontFamily.textMedium }]}
+            numberOfLines={1}
+          >
+            {customerName.length > 0 ? customerName : 'Add Customer Name'}
           </Text>
           <Icon name="edit" size={20} color="#ffffff" />
         </TouchableOpacity>
 
-        {/* Add Note card */}
+        {/* Note card — shows note text when set */}
         <TouchableOpacity
           style={[s.ctaCard, { backgroundColor: palette.bgAccent }]}
           activeOpacity={0.8}
+          onPress={() => setNoteVisible(true)}
         >
-          <Text style={[s.ctaLabel, { color: TEAL_DARK, fontFamily: FontFamily.textMedium }]}>
-            Add Note
+          <Text
+            style={[s.ctaLabel, { color: TEAL_DARK, fontFamily: FontFamily.textMedium }]}
+            numberOfLines={1}
+          >
+            {orderNote.length > 0 ? orderNote : 'Add Note'}
           </Text>
           <Icon name="edit" size={20} color={TEAL_DARK} />
         </TouchableOpacity>
