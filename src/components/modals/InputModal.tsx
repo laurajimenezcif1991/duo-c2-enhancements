@@ -138,17 +138,13 @@ export function InputModal({
             <Text style={[s.fieldLabel, { color: palette.textSecondary, fontFamily: FontFamily.textRegular }]}>
               {label}
             </Text>
-            {/* Display text + cursor */}
-            <View style={s.textRow}>
-              <Text style={[s.textDisplay, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
-                {text}
-              </Text>
-              <Animated.Text
-                style={[s.cursor, { opacity: cursorAnim, color: palette.textPrimary }]}
-              >
-                |
+            {/* Display text + cursor — cursor nested inline so it never jumps to its own line */}
+            <Text style={[s.textDisplay, { color: palette.textPrimary, fontFamily: FontFamily.textRegular }]}>
+              {text}
+              <Animated.Text style={[s.cursor, { opacity: cursorAnim, color: palette.textPrimary }]}>
+                {'|'}
               </Animated.Text>
-            </View>
+            </Text>
             {/* Character count */}
             <View style={s.charCountRow}>
               <Text style={[s.charCount, { color: palette.neutral, fontFamily: FontFamily.textRegular }]}>
@@ -233,11 +229,6 @@ const s = StyleSheet.create({
   fieldLabel: {
     fontSize:   FontSize.bodySM,
     lineHeight: FontSize.bodySM * 1.5,
-  },
-  textRow: {
-    flexDirection: 'row',
-    alignItems:    'center',
-    flexWrap:      'wrap',
   },
   textDisplay: {
     fontSize:   FontSize.bodyMD,
