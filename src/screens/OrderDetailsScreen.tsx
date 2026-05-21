@@ -115,7 +115,7 @@ export function OrderDetailsScreen({
           >
             {customerName.length > 0 ? customerName : 'Add Customer Name'}
           </Text>
-          <Icon name="edit" size={20} color="#ffffff" />
+          <Icon name="keypad" size={20} color="#ffffff" />
         </TouchableOpacity>
 
         {/* Note card — shows note text when set */}
@@ -130,7 +130,7 @@ export function OrderDetailsScreen({
           >
             {orderNote.length > 0 ? orderNote : 'Add Note'}
           </Text>
-          <Icon name="edit" size={20} color={TEAL_DARK} />
+          <Icon name="keypad" size={20} color={TEAL_DARK} />
         </TouchableOpacity>
 
         {/* Item rows */}

@@ -244,6 +244,7 @@ import BulkSearchSvg       from '../../../assets/icons/bulk-search.svg';
 import BulletedListSvg     from '../../../assets/icons/bulleted-list.svg';
 import BullseyeSvg         from '../../../assets/icons/bullseye.svg';
 import CalculatorSvg       from '../../../assets/icons/calculator.svg';
+import KeypadSvg           from '../../../assets/icons/keypad.svg';
 import CalendarSvg         from '../../../assets/icons/calendar.svg';
 import CameraSvg           from '../../../assets/icons/camera.svg';
 import CartSvg             from '../../../assets/icons/cart.svg';
@@ -590,6 +591,7 @@ export type IconName =
   | 'manage-products' | 'manage-reviews' | 'manage-services' | 'map-pin' | 'map'
   | 'marketing' | 'marketplaces' | 'media' | 'megaphone' | 'menu' | 'mic'
   | 'minus' | 'mobile-phone' | 'moon' | 'network' | 'nfc' | 'no' | 'numbered-list'
+  | 'keypad'
   | 'ok' | 'online-ordering' | 'online-store' | 'orders' | 'page' | 'pages'
   | 'paint-bucket' | 'paintbrush' | 'pause' | 'pay-links-wallet' | 'pay-links'
   | 'payouts' | 'percent' | 'phone' | 'pin' | 'play' | 'plus' | 'pound'
@@ -699,7 +701,7 @@ const ICON_MAP: Record<IconName, SvgC> = {
   binoculars: BinocularsSvg, blog: BlogSvg, bluetooth: BluetoothSvg,
   bold: BoldSvg, bookmark: BookmarkSvg, briefcase: BriefcaseSvg,
   'bulk-search': BulkSearchSvg, 'bulleted-list': BulletedListSvg,
-  bullseye: BullseyeSvg, calculator: CalculatorSvg, calendar: CalendarSvg,
+  bullseye: BullseyeSvg, calculator: CalculatorSvg, calendar: CalendarSvg, keypad: KeypadSvg,
   camera: CameraSvg, cart: CartSvg, chat: ChatSvg,
   'checkbox-list': CheckboxListSvg, checkbox: CheckboxSvg, checkmark: CheckmarkSvg,
   'chevron-dbl-left': ChevronDblLeftSvg, 'chevron-dbl-right': ChevronDblRightSvg,
