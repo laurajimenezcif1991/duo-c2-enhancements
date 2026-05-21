@@ -25,7 +25,8 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useFonts } from 'expo-font';
+import { useFonts }                                             from 'expo-font';
+import { Roboto_400Regular, Roboto_500Medium }                 from '@expo-google-fonts/roboto';
 
 import { RegisterDuoScreen }   from './src/screens/RegisterDuoScreen';
 import { RegisterDuoC2Screen } from './src/screens/RegisterDuoC2Screen';
@@ -42,6 +43,8 @@ const FONTS = {
   'GDSherpaText-Regular':    require('./assets/fonts/GDSherpaText-Regular.otf'),
   'GDSherpaText-Medium':     require('./assets/fonts/GDSherpaText-Medium.otf'),
   'GDSherpaText-Bold':       require('./assets/fonts/GDSherpaText-Bold.otf'),
+  Roboto_400Regular,
+  Roboto_500Medium,
 };
 
 // ─── Device frame geometry (matches std-device.png, node 32:7569) ─────────────

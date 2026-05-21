@@ -61,10 +61,11 @@ export function InputModal({
   onCancel,
   dark = false,
 }: InputModalProps) {
-  const palette   = dark ? ColorTokens.dark : ColorTokens.light;
-  const [text, setText] = useState(initialValue);
+  const palette = dark ? ColorTokens.dark : ColorTokens.light;
+  const [text,          setText]          = useState(initialValue);
+  const [keyboardShown, setKeyboardShown] = useState(true);
 
-  // Cursor blink
+  // Cursor blink (only when keyboard is hidden — shows user can still edit)
   const cursorAnim = useRef(new Animated.Value(1)).current;
   useEffect(() => {
     const loop = Animated.loop(
@@ -79,7 +80,19 @@ export function InputModal({
     return () => loop.stop();
   }, [cursorAnim]);
 
-  // Slide up animation
+  // Keyboard slide animation
+  const kbSlideY = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.spring(kbSlideY, {
+      toValue:         keyboardShown ? 0 : 400,
+      useNativeDriver: true,
+      damping:         28,
+      stiffness:       260,
+      mass:            0.9,
+    }).start();
+  }, [keyboardShown, kbSlideY]);
+
+  // Sheet slide-up when modal opens
   const slideY = useRef(new Animated.Value(800)).current;
   useEffect(() => {
     Animated.spring(slideY, {
@@ -89,7 +102,10 @@ export function InputModal({
       stiffness:       260,
       mass:            0.9,
     }).start();
-    if (visible) setText(initialValue);
+    if (visible) {
+      setText(initialValue);
+      setKeyboardShown(true);
+    }
   }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!visible) return null;
@@ -106,15 +122,18 @@ export function InputModal({
 
         {/* ── White card ────────────────────────────────────────────────── */}
         <View style={[s.card, {
-          backgroundColor:  palette.bgSurface,
-          shadowColor:      '#1A2024',
-          shadowOffset:     { width: 0, height: 4 },
-          shadowOpacity:    0.18,
-          shadowRadius:     8,
-          elevation:        8,
+          backgroundColor: palette.bgSurface,
+          shadowColor:     '#1A2024',
+          shadowOffset:    { width: 0, height: 4 },
+          shadowOpacity:   0.18,
+          shadowRadius:    8,
+          elevation:       8,
         }]}>
-          {/* Text area (bordered) */}
-          <View style={[s.textArea, { borderColor: palette.neutral }]}>
+          {/* Text area — tap to re-show keyboard */}
+          <Pressable
+            style={[s.textArea, { borderColor: keyboardShown ? palette.bgBase : palette.neutral }]}
+            onPress={() => setKeyboardShown(true)}
+          >
             {/* Label */}
             <Text style={[s.fieldLabel, { color: palette.textSecondary, fontFamily: FontFamily.textRegular }]}>
               {label}
@@ -136,7 +155,7 @@ export function InputModal({
                 {`${text.length}/${maxLength}`}
               </Text>
             </View>
-          </View>
+          </Pressable>
 
           {/* Cancel / Confirm buttons */}
           <View style={s.btnRow}>
@@ -161,13 +180,15 @@ export function InputModal({
           </View>
         </View>
 
-        {/* ── Custom keyboard ────────────────────────────────────────────── */}
-        <TouchKeyboard
-          value={text}
-          maxLength={maxLength}
-          onChange={setText}
-          onSubmit={canConfirm ? () => onConfirm(text.trim()) : undefined}
-        />
+        {/* ── Custom keyboard — slides down when ✓ is pressed ─────────── */}
+        <Animated.View style={{ transform: [{ translateY: kbSlideY }], overflow: 'hidden' }}>
+          <TouchKeyboard
+            value={text}
+            maxLength={maxLength}
+            onChange={setText}
+            onDismiss={() => setKeyboardShown(false)}
+          />
+        </Animated.View>
       </Animated.View>
     </View>
   );
@@ -186,7 +207,7 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(17,17,17,0.50)',
   },
   sheet: {
-    // Bottom sheet — card + keyboard
+    paddingBottom: Spacing[16],
   },
 
   // ── Card ──────────────────────────────────────────────────────────────────

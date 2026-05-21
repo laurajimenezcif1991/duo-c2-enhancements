@@ -30,6 +30,10 @@ const OK_PRESSED    = '#008385';  // OK pressed
 const HINT_COLOR    = '#72797E';  // number hint above letter
 const LABEL_COLOR   = '#363D44';  // main key label
 
+// Expo Google Fonts loaded names
+const ROBOTO_REG = 'Roboto_400Regular';
+const ROBOTO_MED = 'Roboto_500Medium';
+
 // Key height fixed per Figma
 const KH = 72;
 const K_RADIUS = 5;
@@ -102,17 +106,18 @@ const SYM_ROW4 = NUM_ROW4;
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 export type TouchKeyboardProps = {
-  value:      string;
-  maxLength?: number;
-  onChange:   (v: string) => void;
-  onSubmit?:  () => void;
+  value:        string;
+  maxLength?:   number;
+  onChange:     (v: string) => void;
+  /** Called when the ✓ (OK) key is pressed — caller hides the keyboard */
+  onDismiss?:   () => void;
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 type Mode = 'qwerty' | 'qwerty-upper' | 'num' | 'sym';
 
-export function TouchKeyboard({ value, maxLength, onChange, onSubmit }: TouchKeyboardProps) {
+export function TouchKeyboard({ value, maxLength, onChange, onDismiss }: TouchKeyboardProps) {
   const [mode, setMode] = useState<Mode>('qwerty');
 
   const handleKey = useCallback((key: KDef) => {
@@ -121,7 +126,8 @@ export function TouchKeyboard({ value, maxLength, onChange, onSubmit }: TouchKey
       return;
     }
     if (key.type === 'ok') {
-      onSubmit?.();
+      // Hide keyboard so user can review text and tap Confirm or Cancel
+      onDismiss?.();
       return;
     }
     if (key.type === 'shift') {
@@ -269,15 +275,16 @@ const s = StyleSheet.create({
 
   // Labels
   label: {
-    fontFamily: 'Roboto',
+    fontFamily: ROBOTO_REG,
     fontSize:   22,
     color:      LABEL_COLOR,
     textAlign:  'center',
     lineHeight: 26,
   },
   labelSpecial: {
-    fontSize: 16,
-    color:    '#2D333A',
+    fontSize:   16,
+    fontFamily: ROBOTO_MED,
+    color:      '#2D333A',
   },
   labelSpace: {
     fontSize: 14,
@@ -287,7 +294,7 @@ const s = StyleSheet.create({
     top:        6,
     right:      8,
     fontSize:   12,
-    fontFamily: 'Roboto',
+    fontFamily: ROBOTO_REG,
     color:      HINT_COLOR,
     lineHeight: 14,
   },
